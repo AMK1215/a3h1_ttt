@@ -297,38 +297,46 @@ class WithdrawController extends Controller
                         //         continue;
                         //     }
 
-                            // if ($userWithWallet->balanceFloat < $convertedAmount) {
-                            //     $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
-                            //     $transactionMessage = 'Insufficient balance';
-                            //     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
+                        //     // if ($userWithWallet->balanceFloat < $convertedAmount) {
+                        //     //     $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                        //     //     $transactionMessage = 'Insufficient balance';
+                        //     //     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
                             
-                            //     DB::commit(); // or DB::rollBack(); as nothing has changed
-                            //     $responseData[] = [
-                            //         'member_account'   => $memberAccount,
-                            //         'product_code'     => (int) $productCode,
-                            //         'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                            //         'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                            //         'code'             => $transactionCode,
-                            //         'message'          => $transactionMessage,
-                            //     ];
+                        //     //     DB::commit(); // or DB::rollBack(); as nothing has changed
+                        //     //     $responseData[] = [
+                        //     //         'member_account'   => $memberAccount,
+                        //     //         'product_code'     => (int) $productCode,
+                        //     //         'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                        //     //         'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                        //     //         'code'             => $transactionCode,
+                        //     //         'message'          => $transactionMessage,
+                        //     //     ];
                             
-                            //     continue; // Do NOT try to withdraw, just go to the next transaction!
-                            // }
+                        //     //     continue; // Do NOT try to withdraw, just go to the next transaction!
+                        //     // }
                             
 
-                            // Perform the withdrawal
-                            $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
-                            $newBalance = $userWithWallet->wallet->balanceFloat;
+                        //     // Perform the withdrawal
+                        //     $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
+                        //     $newBalance = $userWithWallet->wallet->balanceFloat;
 
-                            $transactionCode = SeamlessWalletCode::Success->value;
-                            $transactionMessage = 'Transaction processed successfully';
-                            $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
+                        //     $transactionCode = SeamlessWalletCode::Success->value;
+                        //     $transactionMessage = 'Transaction processed successfully';
+                        //     $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
-                        } else {
-                            // This block should ideally not be reached if $this->debitActions is comprehensive
-                            // and the check before DB::beginTransaction() is effective.
-                            throw new Exception('Unhandled debit action type: '.$action);
-                        }
+                        // } else {
+                        //     // This block should ideally not be reached if $this->debitActions is comprehensive
+                        //     // and the check before DB::beginTransaction() is effective.
+                        //     throw new Exception('Unhandled debit action type: '.$action);
+                        // }
+
+                         // Perform the withdrawal
+                         $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
+                         $newBalance = $userWithWallet->wallet->balanceFloat;
+
+                         $transactionCode = SeamlessWalletCode::Success->value;
+                         $transactionMessage = 'Transaction processed successfully';
+                         $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
 
                         DB::commit();
                         $currentBalance = $newBalance; // Update current balance for next transaction in the batch
