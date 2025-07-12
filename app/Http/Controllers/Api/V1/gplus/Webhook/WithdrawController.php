@@ -129,7 +129,7 @@ class WithdrawController extends Controller
             // Calculate total amount required for all transactions in this batch
             foreach ($batchRequest['transactions'] ?? [] as $tx) {
                 $action = strtoupper($tx['action'] ?? '');
-                $betAmount = floatval($tx['bet_amount'] ?? 0);
+                $betAmount = floatval($tx['amount'] ?? 0);
 
                 // Only count debit actions that require balance
                 if (in_array($action, $this->debitActions) && $betAmount > 0) {
