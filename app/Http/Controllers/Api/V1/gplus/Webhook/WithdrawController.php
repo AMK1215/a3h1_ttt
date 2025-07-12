@@ -279,23 +279,23 @@ class WithdrawController extends Controller
                             continue;
                         }
                         // Handle actions that represent debits
-                        if ($action === 'BET' || $action === 'ADJUST_DEBIT' || $action === 'WITHDRAW' || $action === 'FEE') {
-                            if ($convertedAmount <= 0) {
-                                Log::warning('Zero or negative amount for debit action, skipping wallet withdraw but logging.', ['transaction_id' => $transactionId, 'action' => $action, 'amount' => $amount]);
-                                $transactionMessage = 'Debit action with zero/negative amount.';
-                                $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
-                                DB::commit();
-                                $responseData[] = [
-                                    'member_account' => $memberAccount,
-                                    'product_code' => (int) $productCode,
-                                    'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                                    'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency), // Balance doesn't change
-                                    'code' => SeamlessWalletCode::Success->value, // Still success for processing the request
-                                    'message' => 'Processed with zero amount, no balance change.',
-                                ];
+                        // if ($action === 'BET' || $action === 'ADJUST_DEBIT' || $action === 'WITHDRAW' || $action === 'FEE') {
+                        //     if ($convertedAmount <= 0) {
+                        //         Log::warning('Zero or negative amount for debit action, skipping wallet withdraw but logging.', ['transaction_id' => $transactionId, 'action' => $action, 'amount' => $amount]);
+                        //         $transactionMessage = 'Debit action with zero/negative amount.';
+                        //         $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
+                        //         DB::commit();
+                        //         $responseData[] = [
+                        //             'member_account' => $memberAccount,
+                        //             'product_code' => (int) $productCode,
+                        //             'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                        //             'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency), // Balance doesn't change
+                        //             'code' => SeamlessWalletCode::Success->value, // Still success for processing the request
+                        //             'message' => 'Processed with zero amount, no balance change.',
+                        //         ];
 
-                                continue;
-                            }
+                        //         continue;
+                        //     }
 
                             // if ($userWithWallet->balanceFloat < $convertedAmount) {
                             //     $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
