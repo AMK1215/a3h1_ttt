@@ -249,6 +249,26 @@ class WithdrawController extends Controller
 
                         $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
 
+                        // 1. Check for insufficient balance BEFORE any withdrawal!
+                        if ($beforeTransactionBalance < $convertedAmount) {
+                            $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                            $transactionMessage = 'Insufficient balance';
+                            $this->logPlaceBet(
+                                $batchRequest, $request, $tx, 'failed',
+                                $request->request_time, $transactionMessage,
+                                $beforeTransactionBalance, $beforeTransactionBalance
+                            );
+                            DB::rollBack(); // Or commit, but rollback is more "traditional" if nothing changed
+                            $responseData[] = [
+                                'member_account'   => $memberAccount,
+                                'product_code'     => (int) $productCode,
+                                'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                'code'             => $transactionCode,
+                                'message'          => $transactionMessage,
+                            ];
+                            continue;
+                        }
                         // Handle actions that represent debits
                         if ($action === 'BET' || $action === 'ADJUST_DEBIT' || $action === 'WITHDRAW' || $action === 'FEE') {
                             if ($convertedAmount <= 0) {
@@ -268,23 +288,23 @@ class WithdrawController extends Controller
                                 continue;
                             }
 
-                            if ($userWithWallet->balanceFloat < $convertedAmount) {
-                                $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
-                                $transactionMessage = 'Insufficient balance';
-                                $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
+                            // if ($userWithWallet->balanceFloat < $convertedAmount) {
+                            //     $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                            //     $transactionMessage = 'Insufficient balance';
+                            //     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
                             
-                                DB::commit(); // or DB::rollBack(); as nothing has changed
-                                $responseData[] = [
-                                    'member_account'   => $memberAccount,
-                                    'product_code'     => (int) $productCode,
-                                    'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                                    'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                                    'code'             => $transactionCode,
-                                    'message'          => $transactionMessage,
-                                ];
+                            //     DB::commit(); // or DB::rollBack(); as nothing has changed
+                            //     $responseData[] = [
+                            //         'member_account'   => $memberAccount,
+                            //         'product_code'     => (int) $productCode,
+                            //         'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                            //         'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                            //         'code'             => $transactionCode,
+                            //         'message'          => $transactionMessage,
+                            //     ];
                             
-                                continue; // Do NOT try to withdraw, just go to the next transaction!
-                            }
+                            //     continue; // Do NOT try to withdraw, just go to the next transaction!
+                            // }
                             
 
                             // Perform the withdrawal
