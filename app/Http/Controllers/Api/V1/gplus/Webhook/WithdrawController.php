@@ -150,12 +150,7 @@ class WithdrawController extends Controller
                     continue;
                 }
 
-                $player_balance = $user->wallet->balanceFloat;
-                Log::info('WithdrawController: Player balance', ['player_balance' => $player_balance]);
-                if($player_balance < 10){
-                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $player_balance, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
-                    continue;
-                }
+               
 
                 $initialBalance = $user->wallet->balanceFloat; // Get initial balance before processing any transactions in this batch
                 $currentBalance = $initialBalance; // This will track balance changes within the batch for accurate reporting
@@ -248,9 +243,9 @@ class WithdrawController extends Controller
                             $query->lockForUpdate();
                         }])->find($user->id);
 
-                        if (! $userWithWallet || ! $userWithWallet->wallet) {
-                            throw new Exception('User or wallet not found during transaction locking.');
-                        }
+                        // if (! $userWithWallet || ! $userWithWallet->wallet) {
+                        //     throw new Exception('User or wallet not found during transaction locking.');
+                        // }
 
                         $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
 
