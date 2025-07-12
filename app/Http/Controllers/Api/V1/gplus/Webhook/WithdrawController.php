@@ -73,6 +73,12 @@ class WithdrawController extends Controller
             );
         }
 
+        // Check if users have sufficient balance for the entire batch before processing
+        $balanceCheckResult = $this->checkBatchBalance($request);
+        if ($balanceCheckResult !== null) {
+            return ApiResponseService::success($balanceCheckResult);
+        }
+
         // Process all transactions in the batch
         $results = $this->processWithdrawTransactions($request);
 
@@ -86,6 +92,74 @@ class WithdrawController extends Controller
         ]);
 
         return ApiResponseService::success($results);
+    }
+
+    /**
+     * Check if users have sufficient balance for the entire batch before processing.
+     * Returns null if all users have sufficient balance, otherwise returns error responses.
+     */
+    private function checkBatchBalance(Request $request): ?array
+    {
+        $responseData = [];
+
+        foreach ($request->batch_requests as $batchRequest) {
+            $memberAccount = $batchRequest['member_account'] ?? null;
+            $productCode = $batchRequest['product_code'] ?? null;
+
+            if (!$memberAccount) {
+                continue;
+            }
+
+            $user = User::where('user_name', $memberAccount)->first();
+            if (!$user || !$user->wallet) {
+                $responseData[] = $this->buildErrorResponse(
+                    $memberAccount, 
+                    $productCode, 
+                    0.0, 
+                    SeamlessWalletCode::MemberNotExist, 
+                    'Member not found or wallet missing', 
+                    $request->currency
+                );
+                continue;
+            }
+
+            $currentBalance = $user->wallet->balanceFloat;
+            $totalRequiredAmount = 0;
+
+            // Calculate total amount required for all transactions in this batch
+            foreach ($batchRequest['transactions'] ?? [] as $tx) {
+                $action = strtoupper($tx['action'] ?? '');
+                $amount = floatval($tx['amount'] ?? 0);
+
+                // Only count debit actions that require balance
+                if (in_array($action, $this->debitActions) && $amount > 0) {
+                    $convertedAmount = abs($this->toDecimalPlaces($amount * $this->getCurrencyValue($request->currency)));
+                    $totalRequiredAmount += $convertedAmount;
+                }
+            }
+
+            // Check if user has sufficient balance for the entire batch
+            if ($currentBalance < $totalRequiredAmount) {
+                Log::warning('Insufficient balance for batch processing', [
+                    'member_account' => $memberAccount,
+                    'current_balance' => $currentBalance,
+                    'total_required' => $totalRequiredAmount,
+                    'transactions_count' => count($batchRequest['transactions'] ?? [])
+                ]);
+
+                $responseData[] = $this->buildErrorResponse(
+                    $memberAccount,
+                    $productCode,
+                    $currentBalance,
+                    SeamlessWalletCode::InsufficientBalance,
+                    'Insufficient balance for batch processing',
+                    $request->currency
+                );
+            }
+        }
+
+        // Return null if no errors (sufficient balance for all), otherwise return error responses
+        return empty($responseData) ? null : $responseData;
     }
 
     /**
