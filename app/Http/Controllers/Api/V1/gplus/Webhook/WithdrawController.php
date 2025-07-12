@@ -76,15 +76,7 @@ class WithdrawController extends Controller
         // If you want to handle the case when the balance is sufficient, add your logic here.
         // For now, there is no else/other case.
         
-        $user = User::where('user_name', $memberAccount)->first();
-        $player_balance = $user->wallet->balanceFloat;
-        if($player_balance < 10){
-            return ApiResponseService::error(
-                SeamlessWalletCode::InsufficientBalance,
-                'Insufficient balance',
-                []
-            );
-        }
+        
 
         // Process all transactions in the batch
         $results = $this->processWithdrawTransactions($request);
@@ -155,6 +147,12 @@ class WithdrawController extends Controller
                     Log::warning('Wallet missing for member during withdraw/bet request', ['member_account' => $memberAccount]);
                     $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, 0.00, SeamlessWalletCode::MemberNotExist, 'Member wallet missing', $request->currency);
 
+                    continue;
+                }
+
+                $player_balance = $user->wallet->balanceFloat;
+                if($player_balance < 10){
+                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $player_balance, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
                     continue;
                 }
 
