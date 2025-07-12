@@ -147,8 +147,13 @@ class WithdrawController extends Controller
                
 
                 $initialBalance = $user->wallet->balanceFloat; // Get initial balance before processing any transactions in this batch
+                Log::info('WithdrawController: Initial balance', ['member_account' => $memberAccount, 'balance' => $initialBalance]);
                 $currentBalance = $initialBalance; // This will track balance changes within the batch for accurate reporting
-
+                if($currentBalance < $batchRequest['bet_amount']){
+                    Log::warning('WithdrawController: Initial balance is negative', ['member_account' => $memberAccount, 'balance' => $currentBalance]);
+                    $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
+                    continue;
+                }
                 foreach ($batchRequest['transactions'] ?? [] as $tx) {
                     $transactionId = $tx['id'] ?? null;
                     $action = strtoupper($tx['action'] ?? '');
