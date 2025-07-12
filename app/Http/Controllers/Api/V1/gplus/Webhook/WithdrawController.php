@@ -213,26 +213,7 @@ class WithdrawController extends Controller
                         'raw_payload' => $tx,
                     ];
 
-                    // Check for duplicate transactions (idempotency)
-                    $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
-                                   WalletTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
-
-                    if ($isDuplicate) {
-                        Log::warning('Duplicate transaction ID detected for withdraw/bet', ['tx_id' => $transactionId, 'member_account' => $memberAccount, 'action' => $action]);
-                        $this->logPlaceBet($batchRequest, $request, $tx, 'duplicate', $request->request_time, 'Duplicate transaction', $currentBalance, $currentBalance);
-                        $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::DuplicateTransaction, 'Duplicate transaction', $request->currency);
-
-                        continue;
-                    }
-
-                    // Ensure action is a valid debit action for this controller
-                    if (! in_array($action, $this->debitActions)) {
-                        Log::warning('Unsupported action type received on withdraw endpoint', ['transaction_id' => $transactionId, 'action' => $action]);
-                        $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Unsupported action type for this endpoint: '.$action, $currentBalance, $currentBalance);
-                        $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Unsupported action type: '.$action, $request->currency);
-
-                        continue;
-                    }
+                   
 
                     // Transaction-specific logic
                     DB::beginTransaction();
@@ -243,9 +224,6 @@ class WithdrawController extends Controller
                             $query->lockForUpdate();
                         }])->find($user->id);
 
-                        // if (! $userWithWallet || ! $userWithWallet->wallet) {
-                        //     throw new Exception('User or wallet not found during transaction locking.');
-                        // }
 
                         $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
 
@@ -278,57 +256,29 @@ class WithdrawController extends Controller
                             ];
                             continue;
                         }
-                        // Handle actions that represent debits
-                        // if ($action === 'BET' || $action === 'ADJUST_DEBIT' || $action === 'WITHDRAW' || $action === 'FEE') {
-                        //     if ($convertedAmount <= 0) {
-                        //         Log::warning('Zero or negative amount for debit action, skipping wallet withdraw but logging.', ['transaction_id' => $transactionId, 'action' => $action, 'amount' => $amount]);
-                        //         $transactionMessage = 'Debit action with zero/negative amount.';
-                        //         $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
-                        //         DB::commit();
-                        //         $responseData[] = [
-                        //             'member_account' => $memberAccount,
-                        //             'product_code' => (int) $productCode,
-                        //             'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        //             'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency), // Balance doesn't change
-                        //             'code' => SeamlessWalletCode::Success->value, // Still success for processing the request
-                        //             'message' => 'Processed with zero amount, no balance change.',
-                        //         ];
 
-                        //         continue;
-                        //     }
 
-                        //     // if ($userWithWallet->balanceFloat < $convertedAmount) {
-                        //     //     $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
-                        //     //     $transactionMessage = 'Insufficient balance';
-                        //     //     $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
-                            
-                        //     //     DB::commit(); // or DB::rollBack(); as nothing has changed
-                        //     //     $responseData[] = [
-                        //     //         'member_account'   => $memberAccount,
-                        //     //         'product_code'     => (int) $productCode,
-                        //     //         'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        //     //         'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        //     //         'code'             => $transactionCode,
-                        //     //         'message'          => $transactionMessage,
-                        //     //     ];
-                            
-                        //     //     continue; // Do NOT try to withdraw, just go to the next transaction!
-                        //     // }
-                            
+                         // Check for duplicate transactions (idempotency)
+                    $isDuplicate = PlaceBet::where('transaction_id', $transactionId)->exists() ||
+                    WalletTransaction::whereJsonContains('meta->seamless_transaction_id', $transactionId)->exists();
 
-                        //     // Perform the withdrawal
-                        //     $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
-                        //     $newBalance = $userWithWallet->wallet->balanceFloat;
+     if ($isDuplicate) {
+         Log::warning('Duplicate transaction ID detected for withdraw/bet', ['tx_id' => $transactionId, 'member_account' => $memberAccount, 'action' => $action]);
+         $this->logPlaceBet($batchRequest, $request, $tx, 'duplicate', $request->request_time, 'Duplicate transaction', $currentBalance, $currentBalance);
+         $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::DuplicateTransaction, 'Duplicate transaction', $request->currency);
 
-                        //     $transactionCode = SeamlessWalletCode::Success->value;
-                        //     $transactionMessage = 'Transaction processed successfully';
-                        //     $this->logPlaceBet($batchRequest, $request, $tx, 'completed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $newBalance);
+         continue;
+     }
 
-                        // } else {
-                        //     // This block should ideally not be reached if $this->debitActions is comprehensive
-                        //     // and the check before DB::beginTransaction() is effective.
-                        //     throw new Exception('Unhandled debit action type: '.$action);
-                        // }
+     // Ensure action is a valid debit action for this controller
+     if (! in_array($action, $this->debitActions)) {
+         Log::warning('Unsupported action type received on withdraw endpoint', ['transaction_id' => $transactionId, 'action' => $action]);
+         $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, 'Unsupported action type for this endpoint: '.$action, $currentBalance, $currentBalance);
+         $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $currentBalance, SeamlessWalletCode::InternalServerError, 'Unsupported action type: '.$action, $request->currency);
+
+         continue;
+     }
+                       
 
                          // Perform the withdrawal
                          $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
