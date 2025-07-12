@@ -53,7 +53,6 @@ class WithdrawController extends Controller
      */
     public function withdraw(Request $request)
     {
-       Log::info('WithdrawController: Request', ['request' => $request->all()]);
         try {
             $request->validate([
                 'operator_code' => 'required|string',
@@ -73,12 +72,6 @@ class WithdrawController extends Controller
             );
         }
 
-        // Check if users have sufficient balance for the entire batch before processing
-        $balanceCheckResult = $this->checkBatchBalance($request);
-        if ($balanceCheckResult !== null) {
-            return ApiResponseService::success($balanceCheckResult);
-        }
-
         // Process all transactions in the batch
         $results = $this->processWithdrawTransactions($request);
 
@@ -92,74 +85,6 @@ class WithdrawController extends Controller
         ]);
 
         return ApiResponseService::success($results);
-    }
-
-    /**
-     * Check if users have sufficient balance for the entire batch before processing.
-     * Returns null if all users have sufficient balance, otherwise returns error responses.
-     */
-    private function checkBatchBalance(Request $request): ?array
-    {
-        $responseData = [];
-
-        foreach ($request->batch_requests as $batchRequest) {
-            $memberAccount = $batchRequest['member_account'] ?? null;
-            $productCode = $batchRequest['product_code'] ?? null;
-
-            if (!$memberAccount) {
-                continue;
-            }
-
-            $user = User::where('user_name', $memberAccount)->first();
-            if (!$user || !$user->wallet) {
-                $responseData[] = $this->buildErrorResponse(
-                    $memberAccount, 
-                    $productCode, 
-                    0.0, 
-                    SeamlessWalletCode::MemberNotExist, 
-                    'Member not found or wallet missing', 
-                    $request->currency
-                );
-                continue;
-            }
-
-            $currentBalance = $user->wallet->balanceFloat;
-            $totalRequiredAmount = 0;
-
-            // Calculate total amount required for all transactions in this batch
-            foreach ($batchRequest['transactions'] ?? [] as $tx) {
-                $action = strtoupper($tx['action'] ?? '');
-                $betAmount = floatval($tx['amount'] ?? 0);
-
-                // Only count debit actions that require balance
-                if (in_array($action, $this->debitActions) && $betAmount > 0) {
-                    $convertedBetAmount = abs($this->toDecimalPlaces($betAmount * $this->getCurrencyValue($request->currency)));
-                    $totalRequiredAmount += $convertedBetAmount;
-                }
-            }
-
-            // Check if user has sufficient balance for the entire batch
-            if ($currentBalance < $totalRequiredAmount) {
-                Log::warning('Insufficient balance for batch processing', [
-                    'member_account' => $memberAccount,
-                    'current_balance' => $currentBalance,
-                    'total_required' => $totalRequiredAmount,
-                    'transactions_count' => count($batchRequest['transactions'] ?? [])
-                ]);
-
-                $responseData[] = $this->buildErrorResponse(
-                    $memberAccount,
-                    $productCode,
-                    $currentBalance,
-                    SeamlessWalletCode::InsufficientBalance,
-                    'Insufficient balance for batch processing',
-                    $request->currency
-                );
-            }
-        }
-
-        // Return null if no errors (sufficient balance for all), otherwise return error responses
-        return empty($responseData) ? null : $responseData;
     }
 
     /**
@@ -219,11 +144,9 @@ class WithdrawController extends Controller
                     continue;
                 }
 
-               
-
                 $initialBalance = $user->wallet->balanceFloat; // Get initial balance before processing any transactions in this batch
-                Log::info('WithdrawController: Initial balance', ['member_account' => $memberAccount, 'balance' => $initialBalance]);
                 $currentBalance = $initialBalance; // This will track balance changes within the batch for accurate reporting
+
                 foreach ($batchRequest['transactions'] ?? [] as $tx) {
                     $transactionId = $tx['id'] ?? null;
                     $action = strtoupper($tx['action'] ?? '');
@@ -318,47 +241,9 @@ class WithdrawController extends Controller
 
                         $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
 
-                        // Log balance and amount before insufficient balance check
-                        Log::info('WithdrawController: Checking balance for insufficient funds', [
-                            'member_account' => $memberAccount,
-                            'balance' => $userWithWallet->balanceFloat,
-                            'convertedAmount' => $convertedAmount,
-                        ]);
-
-                        // // Check for insufficient balance BEFORE withdrawal
-                        // if ($userWithWallet->balanceFloat < $convertedAmount) {
-                        //     Log::warning('WithdrawController: Insufficient balance detected', [
-                        //         'member_account' => $memberAccount,
-                        //         'balance' => $userWithWallet->balanceFloat,
-                        //         'convertedAmount' => $convertedAmount,
-                        //     ]);
-                        //     $responseData[] = [
-                        //         'member_account' => $memberAccount,
-                        //         'product_code' => (int) $productCode,
-                        //         'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        //         'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                        //         'code' => SeamlessWalletCode::InsufficientBalance->value,
-                        //         'message' => 'Insufficient balance',
-                        //     ];
-                        //     DB::commit();
-                        //     continue;
-                        // }
-
                         // Handle actions that represent debits
                         if ($action === 'BET' || $action === 'ADJUST_DEBIT' || $action === 'WITHDRAW' || $action === 'FEE') {
-                            Log::info('WithdrawController: Processing debit action', [
-                                'member_account' => $memberAccount,
-                                'action' => $action,
-                                'amount' => $amount,
-                                'convertedAmount' => $convertedAmount,
-                            ]);
                             if ($convertedAmount <= 0) {
-                                Log::info('WithdrawController: Processing debit action 2', [
-                                    'member_account' => $memberAccount,
-                                    'action' => $action,
-                                    'amount' => $amount,
-                                    'convertedAmount' => $convertedAmount,
-                                ]);
                                 Log::warning('Zero or negative amount for debit action, skipping wallet withdraw but logging.', ['transaction_id' => $transactionId, 'action' => $action, 'amount' => $amount]);
                                 $transactionMessage = 'Debit action with zero/negative amount.';
                                 $this->logPlaceBet($batchRequest, $request, $tx, 'info', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
@@ -375,16 +260,12 @@ class WithdrawController extends Controller
                                 continue;
                             }
 
-                             
+                            if ($userWithWallet->balanceFloat < $convertedAmount) {
+                                throw new InsufficientFunds('Insufficient balance for '.$action);
+                            }
 
                             // Perform the withdrawal
                             $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
-                            Log::info('WithdrawController: Processing debit action 3', [
-                                'member_account' => $memberAccount,
-                                'action' => $action,
-                                'amount' => $amount,
-                                'convertedAmount' => $convertedAmount,
-                            ]);
                             $newBalance = $userWithWallet->wallet->balanceFloat;
 
                             $transactionCode = SeamlessWalletCode::Success->value;
