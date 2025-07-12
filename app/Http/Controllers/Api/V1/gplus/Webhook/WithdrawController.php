@@ -269,7 +269,8 @@ class WithdrawController extends Controller
                             }
 
                             if ($userWithWallet->balanceFloat < $convertedAmount) {
-                                throw new InsufficientFunds('Insufficient balance for '.$action);
+                                //throw new InsufficientFunds('Insufficient balance for '.$action);
+                                $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $userWithWallet->balanceFloat, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
                             }
 
                             // Perform the withdrawal
