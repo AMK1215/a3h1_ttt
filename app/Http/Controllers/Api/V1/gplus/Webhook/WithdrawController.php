@@ -72,6 +72,15 @@ class WithdrawController extends Controller
             );
         }
 
+        $agent_balance = 9.00;
+        if($agent_balance < 10){
+            return ApiResponseService::error(
+                SeamlessWalletCode::InsufficientBalance->value,
+                'Insufficient balance',
+                []
+            );
+        }
+
         // Process all transactions in the batch
         $results = $this->processWithdrawTransactions($request);
 
