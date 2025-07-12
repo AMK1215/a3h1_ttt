@@ -53,6 +53,7 @@ class WithdrawController extends Controller
      */
     public function withdraw(Request $request)
     {
+       Log::info('WithdrawController: Request', ['request' => $request->all()]);
         try {
             $request->validate([
                 'operator_code' => 'required|string',
@@ -300,24 +301,7 @@ class WithdrawController extends Controller
                                 continue;
                             }
 
-                             // Check for insufficient balance BEFORE withdrawal
-                        if ($userWithWallet->balanceFloat < $tx['bet_amount']) {
-                            Log::warning('WithdrawController: Insufficient balance detected', [
-                                'member_account' => $memberAccount,
-                                'balance' => $userWithWallet->balanceFloat,
-                                'convertedAmount' => $convertedAmount,
-                            ]);
-                            $responseData[] = [
-                                'member_account' => $memberAccount,
-                                'product_code' => (int) $productCode,
-                                'before_balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                                'balance' => $this->formatBalance($beforeTransactionBalance, $request->currency),
-                                'code' => SeamlessWalletCode::InsufficientBalance->value,
-                                'message' => 'Insufficient balance',
-                            ];
-                            DB::commit();
-                            continue;
-                        }
+                             
 
                             // Perform the withdrawal
                             $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
