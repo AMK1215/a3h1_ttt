@@ -139,7 +139,7 @@ class WithdrawController extends Controller
             }
 
             // Check if user has sufficient balance for the entire batch
-            if ($currentBalance < $totalRequiredAmount) {
+            if ($currentBalance < $tx['bet_amount']) {
                 Log::warning('Insufficient balance for batch processing', [
                     'member_account' => $memberAccount,
                     'current_balance' => $currentBalance,
