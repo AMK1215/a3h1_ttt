@@ -71,25 +71,20 @@ class WithdrawController extends Controller
                 $e->errors()
             );
         }
-        $agent = 'A3H1';
-        $agent_balance = 9.00;
-        
-        if ($agent_balance < 10) {
-            return ApiResponseService::success([
-                $this->buildErrorResponse(
-                    $agent,
-                    $request->batch_requests[0]['product_code'] ?? 0,
-                    $agent_balance,
-                    SeamlessWalletCode::InsufficientBalance,
-                    'Insufficient balance',
-                    $request->currency ?? 'MMK'
-                )
-            ]);
-        }
+       
         
         // If you want to handle the case when the balance is sufficient, add your logic here.
         // For now, there is no else/other case.
         
+        $user = User::where('user_name', $memberAccount)->first();
+        $player_balance = $user->wallet->balanceFloat;
+        if($player_balance < 10){
+            return ApiResponseService::error(
+                SeamlessWalletCode::InsufficientBalance,
+                'Insufficient balance',
+                []
+            );
+        }
 
         // Process all transactions in the batch
         $results = $this->processWithdrawTransactions($request);
