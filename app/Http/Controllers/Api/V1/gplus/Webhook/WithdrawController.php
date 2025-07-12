@@ -249,6 +249,15 @@ class WithdrawController extends Controller
 
                         $beforeTransactionBalance = $userWithWallet->wallet->balanceFloat;
 
+                        Log::info('Withdraw Debug', [
+                            'before_balance' => $beforeTransactionBalance,
+                            'converted_amount' => $convertedAmount,
+                            'raw_amount' => $amount,
+                            'currency' => $request->currency,
+                            'member_account' => $memberAccount,
+                        ]);
+                        
+
                         // 1. Check for insufficient balance BEFORE any withdrawal!
                         if ($beforeTransactionBalance < $convertedAmount) {
                             $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
