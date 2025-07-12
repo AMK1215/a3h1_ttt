@@ -151,6 +151,7 @@ class WithdrawController extends Controller
                 }
 
                 $player_balance = $user->wallet->balanceFloat;
+                Log::info('WithdrawController: Player balance', ['player_balance' => $player_balance]);
                 if($player_balance < 10){
                     $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $player_balance, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
                     continue;
