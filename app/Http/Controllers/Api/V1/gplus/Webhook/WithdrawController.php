@@ -257,10 +257,9 @@ class WithdrawController extends Controller
                             'member_account' => $memberAccount,
                         ]);
                         
-                        // Minimum provider-required balance
-                        $minRequiredBalance = 1000;
+                        
                         // 1. Check for insufficient balance BEFORE any withdrawal!
-                        if ($beforeTransactionBalance < $minRequiredBalance) {
+                        if ($beforeTransactionBalance < $convertedAmount) {
                             $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
                             $transactionMessage = 'Insufficient balance';
                             $this->logPlaceBet(
