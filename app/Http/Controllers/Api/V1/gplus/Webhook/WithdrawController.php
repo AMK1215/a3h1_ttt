@@ -269,9 +269,23 @@ class WithdrawController extends Controller
                             }
 
                             if ($userWithWallet->balanceFloat < $convertedAmount) {
-                                //throw new InsufficientFunds('Insufficient balance for '.$action);
-                                $responseData[] = $this->buildErrorResponse($memberAccount, $productCode, $userWithWallet->balanceFloat, SeamlessWalletCode::InsufficientBalance, 'Insufficient balance', $request->currency);
+                                $transactionCode = SeamlessWalletCode::InsufficientBalance->value;
+                                $transactionMessage = 'Insufficient balance';
+                                $this->logPlaceBet($batchRequest, $request, $tx, 'failed', $request->request_time, $transactionMessage, $beforeTransactionBalance, $beforeTransactionBalance);
+                            
+                                DB::commit(); // or DB::rollBack(); as nothing has changed
+                                $responseData[] = [
+                                    'member_account'   => $memberAccount,
+                                    'product_code'     => (int) $productCode,
+                                    'before_balance'   => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                    'balance'          => $this->formatBalance($beforeTransactionBalance, $request->currency),
+                                    'code'             => $transactionCode,
+                                    'message'          => $transactionMessage,
+                                ];
+                            
+                                continue; // Do NOT try to withdraw, just go to the next transaction!
                             }
+                            
 
                             // Perform the withdrawal
                             $this->walletService->withdraw($userWithWallet, $convertedAmount, TransactionName::Withdraw, $meta);
