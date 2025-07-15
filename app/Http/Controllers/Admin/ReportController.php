@@ -171,7 +171,14 @@ class ReportController extends Controller
             abort(404, 'Player not found');
         }
 
-        $bets = $query->orderByDesc('created_at')->paginate(50);
+        //$bets = $query->orderByDesc('created_at')->paginate(50);
+    $sub = PlaceBet::selectRaw('MAX(id) as id')
+    ->where('member_account', $member_account)
+    ->where('wager_status', 'SETTLED')
+    ->groupBy('round_id');
+
+$bets = PlaceBet::whereIn('id', $sub)->orderByDesc('created_at')->paginate(50);
+
 
         return view('admin.report.show', compact('bets', 'member_account'));
     }
