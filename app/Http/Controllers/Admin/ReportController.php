@@ -229,32 +229,67 @@ $bets = PlaceBet::whereIn('id', $sub)->orderByDesc('created_at')->paginate(50);
         return view('admin.report.show', compact('bets', 'member_account'));
     }
 
-    public function dailyWinLossReport(Request $request)
-    {
-        $agent = Auth::user();
-        $playerIds = $agent->getAllDescendantPlayers()->pluck('id');
+    public function dailyWinLossReport(Request $request) 
+{
+    $agent = Auth::user();
+    $playerIds = $agent->getAllDescendantPlayers()->pluck('id');
 
-        $date = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
+    $date = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
 
-        $dailyReports = PlaceBet::whereIn('player_id', $playerIds)
-            ->where('place_bets.wager_status', 'SETTLED')
-            ->whereDate('place_bets.created_at', $date)
-            ->join('users', 'place_bets.player_id', '=', 'users.id')
-            ->select(
-                'users.user_name',
-                'place_bets.player_id',
-                DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
-                DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
-            )
-            ->groupBy('users.user_name', 'place_bets.player_id')
-            ->get();
+    // 1. Deduplicate: Get only the latest SETTLED per player/round_id for the day
+    $ids = PlaceBet::select(DB::raw('MAX(id) as id'))
+        ->whereIn('player_id', $playerIds)
+        ->where('wager_status', 'SETTLED')
+        ->whereDate('created_at', $date)
+        ->groupBy('player_id', 'round_id')
+        ->pluck('id');
 
-        $totalTurnover = $dailyReports->sum('total_turnover');
-        $totalPayout = $dailyReports->sum('total_payout');
-        $totalWinLoss = $totalPayout - $totalTurnover;
+    // 2. Aggregate on those unique records
+    $dailyReports = PlaceBet::whereIn('id', $ids)
+        ->join('users', 'place_bets.player_id', '=', 'users.id')
+        ->select(
+            'users.user_name',
+            'place_bets.player_id',
+            DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
+            DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
+        )
+        ->groupBy('users.user_name', 'place_bets.player_id')
+        ->get();
 
-        return view('admin.reports.daily_win_loss', compact('dailyReports', 'date', 'totalTurnover', 'totalPayout', 'totalWinLoss'));
-    }
+    $totalTurnover = $dailyReports->sum('total_turnover');
+    $totalPayout = $dailyReports->sum('total_payout');
+    $totalWinLoss = $totalPayout - $totalTurnover;
+
+    return view('admin.reports.daily_win_loss', compact('dailyReports', 'date', 'totalTurnover', 'totalPayout', 'totalWinLoss'));
+}
+
+
+    // public function dailyWinLossReport(Request $request)
+    // {
+    //     $agent = Auth::user();
+    //     $playerIds = $agent->getAllDescendantPlayers()->pluck('id');
+
+    //     $date = $request->input('date') ? Carbon::parse($request->input('date')) : Carbon::today();
+
+    //     $dailyReports = PlaceBet::whereIn('player_id', $playerIds)
+    //         ->where('place_bets.wager_status', 'SETTLED')
+    //         ->whereDate('place_bets.created_at', $date)
+    //         ->join('users', 'place_bets.player_id', '=', 'users.id')
+    //         ->select(
+    //             'users.user_name',
+    //             'place_bets.player_id',
+    //             DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
+    //             DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
+    //         )
+    //         ->groupBy('users.user_name', 'place_bets.player_id')
+    //         ->get();
+
+    //     $totalTurnover = $dailyReports->sum('total_turnover');
+    //     $totalPayout = $dailyReports->sum('total_payout');
+    //     $totalWinLoss = $totalPayout - $totalTurnover;
+
+    //     return view('admin.reports.daily_win_loss', compact('dailyReports', 'date', 'totalTurnover', 'totalPayout', 'totalWinLoss'));
+    // }
 
     // public function dailyWinLossReport(Request $request)
     // {
