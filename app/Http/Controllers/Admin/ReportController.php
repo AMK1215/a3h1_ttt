@@ -245,16 +245,28 @@ $bets = PlaceBet::whereIn('id', $sub)->orderByDesc('created_at')->paginate(50);
         ->pluck('id');
 
     // 2. Aggregate on those unique records
-    $dailyReports = PlaceBet::whereIn('id', $ids)
-        ->join('users', 'place_bets.player_id', '=', 'users.id')
-        ->select(
-            'users.user_name',
-            'place_bets.player_id',
-            DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
-            DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
-        )
-        ->groupBy('users.user_name', 'place_bets.player_id')
-        ->get();
+    // $dailyReports = PlaceBet::whereIn('id', $ids)
+    //     ->join('users', 'place_bets.player_id', '=', 'users.id')
+    //     ->select(
+    //         'users.user_name',
+    //         'place_bets.player_id',
+    //         DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
+    //         DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
+    //     )
+    //     ->groupBy('users.user_name', 'place_bets.player_id')
+    //     ->get();
+
+    $dailyReports = PlaceBet::whereIn('place_bets.id', $ids)
+    ->join('users', 'place_bets.player_id', '=', 'users.id')
+    ->select(
+        'users.user_name',
+        'place_bets.player_id',
+        DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.bet_amount * 1000 ELSE place_bets.bet_amount END) as total_turnover'),
+        DB::raw('SUM(CASE WHEN place_bets.currency = \'MMK2\' THEN place_bets.prize_amount * 1000 ELSE place_bets.prize_amount END) as total_payout')
+    )
+    ->groupBy('users.user_name', 'place_bets.player_id')
+    ->get();
+
 
     $totalTurnover = $dailyReports->sum('total_turnover');
     $totalPayout = $dailyReports->sum('total_payout');
