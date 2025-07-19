@@ -62,6 +62,19 @@ Route::group([
     Route::resource('bank', BankController::class);
     // Route::resource('product', ProductController::class);
 
+    // master route
+    Route::resource('master', MasterController::class);
+    Route::get('master-player-list', [MasterController::class, 'MasterPlayerList'])->name('GetMasterPlayerList');
+    Route::get('master-cash-in/{id}', [MasterController::class, 'getCashIn'])->name('master.getCashIn');
+    Route::post('master-cash-in/{id}', [MasterController::class, 'makeCashIn'])->name('master.makeCashIn');
+    Route::get('master/cash-out/{id}', [MasterController::class, 'getCashOut'])->name('master.getCashOut');
+    Route::post('master/cash-out/update/{id}', [MasterController::class, 'makeCashOut'])
+        ->name('master.makeCashOut');
+    Route::put('master/{id}/ban', [MasterController::class, 'banMaster'])->name('master.ban');
+    Route::get('master-changepassword/{id}', [MasterController::class, 'getChangePassword'])->name('master.getChangePassword');
+    Route::post('master-changepassword/{id}', [MasterController::class, 'makeChangePassword'])->name('master.makeChangePassword');
+    // master end
+
     // agent start
     Route::resource('agent', AgentController::class);
     Route::get('agent-player-report/{id}', [AgentController::class, 'getPlayerReports'])->name('agent.getPlayerReports');

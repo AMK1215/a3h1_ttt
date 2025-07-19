@@ -20,7 +20,7 @@ class BannerController extends Controller
     {
         $user = Auth::user();
 
-        $admin = $user->parent;
+        $admin = $user->parent->parent;
 
         $data = Banner::where('admin_id', $admin->agent_id)->get();
 
@@ -30,7 +30,7 @@ class BannerController extends Controller
     public function TopTen()
     {
         $user = Auth::user();
-        $admin = $user->parent;
+        $admin = $user->parent->parent;
 
         $data = TopTenWithdraw::where('admin_id', $admin->agent_id)->get();
 
@@ -41,7 +41,7 @@ class BannerController extends Controller
     {
         $user = Auth::user();
 
-        $admin = $user->parent;
+        $admin = $user->parent->parent;
 
         $data = BannerText::where('admin_id', $admin->agent_id)->get();
 
@@ -52,7 +52,7 @@ class BannerController extends Controller
     {
         $user = Auth::user();
 
-        $admin = $user->parent;
+        $admin = $user->parent->parent;
 
         $data = BannerAds::where('admin_id', $admin->agent_id)->get();
 
@@ -63,7 +63,7 @@ class BannerController extends Controller
     {
         $user = Auth::user();
 
-        $admin = $user->parent;
+        $admin = $user->parent->parent;
 
         $data = WinnerText::where('owner_id', $admin->agent_id)->latest()->first();
 

@@ -137,8 +137,17 @@
                             </a>
                         </li>
 
-                       
-                       
+                        @can('owner_access')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.master.index') }}"
+                                    class="nav-link {{ Route::current()->getName() == 'admin.master.index' ? 'active' : '' }}">
+                                    <i class="fas fa-users"></i>
+                                    <p>
+                                        Master List
+                                    </p>
+                                </a>
+                            </li>
+                        @endcan
                     
                         @can('agent_index')
                             <li class="nav-item">
@@ -151,7 +160,7 @@
                                 </a>
                             </li>
                         @endcan
-                        @can('transfer_log')
+                        @can('view_player_list')
                             <li class="nav-item">
                                 <a href="{{ route('admin.player.index') }}"
                                     class="nav-link {{ Route::current()->getName() == 'admin.player.index' ? 'active' : '' }}">

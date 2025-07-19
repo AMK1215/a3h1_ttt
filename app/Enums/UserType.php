@@ -5,6 +5,7 @@ namespace App\Enums;
 enum UserType: int
 {
     case Owner = 10;
+    case Master = 15;
     case Agent = 20;
     case SubAgent = 30;
     case Player = 40;
@@ -14,10 +15,11 @@ enum UserType: int
     {
         return match ($type) {
             self::Owner => 1,
-            self::Agent => 2,
-            self::SubAgent => 3,
-            self::Player => 4,
-            self::SystemWallet => 5,
+            self::Master => 2,
+            self::Agent => 3,
+            self::SubAgent => 4,
+            self::Player => 5,
+            self::SystemWallet => 6,
         };
     }
 
@@ -25,6 +27,7 @@ enum UserType: int
     {
         return match ($type) {
             self::Owner => self::Agent,
+            self::Master => self::Agent,
             self::Agent => self::SubAgent,
             self::SubAgent => self::Player,
             self::Player, self::SystemWallet => self::Player,
@@ -34,7 +37,8 @@ enum UserType: int
     public static function canHaveChild(UserType $parent, UserType $child): bool
     {
         return match ($parent) {
-            self::Owner => $child === self::Agent,
+            self::Owner => $child === self::Agent || $child === self::Master,
+            self::Master => $child === self::Agent,
             self::Agent => $child === self::SubAgent || $child === self::Player,
             self::SubAgent => $child === self::Player,
             self::Player, self::SystemWallet => false,

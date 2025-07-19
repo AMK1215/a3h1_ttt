@@ -29,9 +29,9 @@ class SubAccountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    protected const SUB_AGENT_ROLE = 3;
+    protected const SUB_AGENT_ROLE = 4;
 
-    private const PLAYER_ROLE = 4;
+    private const PLAYER_ROLE = 5;
 
     // protected const SUB_AGENT_PROFILE = 'subagent_permission';
     protected const SUB_AGENT_PERMISSIONS = [

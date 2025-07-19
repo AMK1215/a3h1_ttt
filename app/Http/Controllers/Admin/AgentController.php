@@ -31,9 +31,9 @@ class AgentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    private const AGENT_ROLE = 2;
+    private const AGENT_ROLE = 3;
 
-    private const PLAYER_ROLE = 4;
+    private const PLAYER_ROLE = 5;
 
     private const PERMISSION_GROUPS = [
         'view_only' => [

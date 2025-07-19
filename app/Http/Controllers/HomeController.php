@@ -49,14 +49,14 @@ class HomeController extends Controller
             ->join('role_user', 'role_user.user_id', '=', 'users.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
             ->join('wallets', 'wallets.holder_id', '=', 'users.id')
-            ->when(in_array($roleTitle, ['Owner', 'Agent', 'SubAgent']), function ($query) use ($user) {
+            ->when(in_array($roleTitle, ['Owner', 'Master', 'Agent', 'SubAgent']), function ($query) use ($user) {
                 return $query->where('users.agent_id', $user->id);
             })
             ->select(DB::raw('COALESCE(SUM(wallets.balance), 0) as balance'))
             ->first();
 
         // Agent-specific metrics
-        if (in_array($roleTitle, ['Agent', 'SubAgent'])) {
+        if (in_array($roleTitle, ['Master', 'Agent', 'SubAgent'])) {
             $todayWinlose = $this->getWinLose($user->id, true);
             $totalWinlose = $this->getWinLose($user->id);
             $todayDeposit = $this->fetchTotalTransactions($user->id, 'deposit');
@@ -64,7 +64,7 @@ class HomeController extends Controller
         }
 
         // Player balances (only for roles above them)
-        if (in_array($roleTitle, ['Owner', 'Agent', 'SubAgent'])) {
+        if (in_array($roleTitle, ['Owner', 'Master', 'Agent', 'SubAgent'])) {
             $childType = UserType::childUserType(UserType::from($user->type));
             $playerBalance = DB::table('users')
                 ->join('wallets', 'wallets.holder_id', '=', 'users.id')
