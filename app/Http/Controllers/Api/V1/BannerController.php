@@ -58,7 +58,7 @@ class BannerController extends Controller
         // $admin = $user->parent->parent;
 
         // $data = BannerAds::where('admin_id', $admin->agent_id)->get();
-        $data = BannerAds::get();
+        $data = BannerAds::latest()->first();
 
         return $this->success($data, 'BannerAds retrieved successfully.');
     }
