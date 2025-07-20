@@ -10,19 +10,18 @@ use App\Http\Requests\TransferLogRequest;
 use App\Models\TransferLog;
 use App\Models\User;
 use App\Services\WalletService;
+use Carbon\Carbon;
 use Exception;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
-
-use Carbon\Carbon;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Log;
 
 class MasterController extends Controller
 {
@@ -30,6 +29,7 @@ class MasterController extends Controller
      * Display a listing of the resource.
      */
     private const MASTER_ROLE = 2;
+
     private const PERMISSION_GROUPS = [
         'master' => [
             'master_access',
@@ -287,7 +287,7 @@ class MasterController extends Controller
                 ],
             ]);
 
-            //return redirect()->route('admin.agent.index')->with('success', 'Money fill request submitted successfully!');
+            // return redirect()->route('admin.agent.index')->with('success', 'Money fill request submitted successfully!');
             return redirect()->back()->with('success', 'Money fill request submitted successfully!');
         } catch (Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());

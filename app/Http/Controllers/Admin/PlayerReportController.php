@@ -13,31 +13,29 @@ use Illuminate\Support\Facades\DB;
 
 class PlayerReportController extends Controller
 {
-    
-
     public function summary(Request $request)
-{
-    $auth = Auth::user();
-    $playerIds = $auth->getAllDescendantPlayers()->pluck('id')->toArray();
+    {
+        $auth = Auth::user();
+        $playerIds = $auth->getAllDescendantPlayers()->pluck('id')->toArray();
 
-    $start = $request->start_date ?? Carbon::today()->startOfDay()->toDateString();
-    $end = $request->end_date ?? Carbon::today()->endOfDay()->toDateString();
+        $start = $request->start_date ?? Carbon::today()->startOfDay()->toDateString();
+        $end = $request->end_date ?? Carbon::today()->endOfDay()->toDateString();
 
-    // Step 1: Subquery for latest SETTLED per (player_id, round_id)
-    $latestSettledIds = PlaceBet::select(DB::raw('MAX(id) as id'))
-        ->whereIn('player_id', $playerIds)
-        ->where('wager_status', 'SETTLED')
-        ->when($start, fn($q) => $q->where('created_at', '>=', $start.' 00:00:00'))
-        ->when($end, fn($q) => $q->where('created_at', '<=', $end.' 23:59:59'))
-        ->when($request->filled('member_account'), fn($q) => $q->where('member_account', $request->member_account))
-        ->groupBy('player_id', 'round_id')
-        ->pluck('id');
+        // Step 1: Subquery for latest SETTLED per (player_id, round_id)
+        $latestSettledIds = PlaceBet::select(DB::raw('MAX(id) as id'))
+            ->whereIn('player_id', $playerIds)
+            ->where('wager_status', 'SETTLED')
+            ->when($start, fn ($q) => $q->where('created_at', '>=', $start.' 00:00:00'))
+            ->when($end, fn ($q) => $q->where('created_at', '<=', $end.' 23:59:59'))
+            ->when($request->filled('member_account'), fn ($q) => $q->where('member_account', $request->member_account))
+            ->groupBy('player_id', 'round_id')
+            ->pluck('id');
 
-    // Step 2: Now only aggregate those latest SETTLED bets
-    $placeBets = PlaceBet::whereIn('id', $latestSettledIds);
+        // Step 2: Now only aggregate those latest SETTLED bets
+        $placeBets = PlaceBet::whereIn('id', $latestSettledIds);
 
-    $report = $placeBets
-        ->selectRaw('
+        $report = $placeBets
+            ->selectRaw('
             player_id,
             COUNT(id) as total_spins,
             SUM(CASE
@@ -60,30 +58,29 @@ class PlayerReportController extends Controller
                 END)
             ) as win_lose
         ')
-        ->groupBy('player_id')
-        ->get();
+            ->groupBy('player_id')
+            ->get();
 
-    // Attach player and agent info
-    $report = $report->map(function ($row) {
-        $player = User::find($row->player_id);
-        $row->player_user_name = $player?->user_name;
-        $row->agent_user_name = $player?->agent?->user_name;
+        // Attach player and agent info
+        $report = $report->map(function ($row) {
+            $player = User::find($row->player_id);
+            $row->player_user_name = $player?->user_name;
+            $row->agent_user_name = $player?->agent?->user_name;
 
-        return $row;
-    });
+            return $row;
+        });
 
-    $totals = [
-        'total_bet' => $report->sum('total_bet'),
-        'total_payout' => $report->sum('total_payout'),
-        'win_lose' => $report->sum('win_lose'),
-    ];
+        $totals = [
+            'total_bet' => $report->sum('total_bet'),
+            'total_payout' => $report->sum('total_payout'),
+            'win_lose' => $report->sum('win_lose'),
+        ];
 
-    return view('admin.report.player_report_index', [
-        'report' => $report,
-        'totals' => $totals,
-    ]);
-}
-
+        return view('admin.report.player_report_index', [
+            'report' => $report,
+            'totals' => $totals,
+        ]);
+    }
 
     // public function summary(Request $request)
     // {
@@ -159,7 +156,5 @@ class PlayerReportController extends Controller
     //         'totals' => $totals,
     //     ]);
     // }
-
-    
 
 }
