@@ -20,10 +20,12 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
+                    @if (Auth::user()->hasPermissionTo('agent_create'))
                     <div class="d-flex justify-content-end mb-3">
                         <a href="{{ route('admin.agent.create') }}" class="btn btn-success " style="width: 100px;"><i
                                 class="fas fa-plus text-white  mr-2"></i>Create</a>
                     </div>
+                    @endif
                     <div class="card">
                         <div class="card-body">
                             <table id="mytable" class="table table-bordered table-hover">
