@@ -232,6 +232,17 @@ class User extends Authenticatable implements Wallet
 
     public function hasPermission($permission)
     {
+        
+        
+
+        // owner
+        if ($this->hasRole('Owner')) {
+
+            // master 
+        if($this->hasRole('Master')){
+            return true;
+        }
+
         // If user is a parent agent, they have all permissions
         if ($this->hasRole('Agent')) {
             return true;
@@ -246,6 +257,7 @@ class User extends Authenticatable implements Wallet
 
         return false;
     }
+}
 
     // public function getAllDescendantPlayers()
     // {
