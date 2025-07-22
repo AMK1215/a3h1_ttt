@@ -107,7 +107,7 @@ class User extends Authenticatable implements Wallet
     // A user can have children (e.g., Admin has many Agents, or Agent has many Players)
     public function children()
     {
-        return $this->hasMany(User::class, 'agent_id');
+        return $this->hasMany(User::class, 'agent_id', 'id');
     }
 
     // A user belongs to an agent (parent)

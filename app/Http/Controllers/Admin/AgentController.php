@@ -80,44 +80,92 @@ class AgentController extends Controller
     ];
 
     public function index(): View
-    {
-        // if (! Gate::allows('agent_index')) {
-        //     abort(403);
-        // }
+{
+    $authUser = auth()->user();
 
-        $agents = User::with(['roles', 'children.poneWinePlayer'])->whereHas('roles', fn ($q) => $q->where('role_id', self::AGENT_ROLE))
-            ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code')
-            ->where('agent_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+    // Determine if current user is Owner or Master (can see all agents)
+    $isOwner = $authUser->hasRole('Owner');
+    $isMaster = $authUser->hasRole('Master');
 
-        $reportData = DB::table('users as a')
-            ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
-            ->join('place_bets', 'place_bets.member_account', '=', 'p.user_name')
-            ->groupBy('a.id')
-            ->selectRaw('a.id as agent_id,SUM(place_bets.bet_amount) as total_bet_amount,SUM(place_bets.prize_amount) as total_payout_amount')
-            ->get()
-            ->keyBy('agent_id');
+    // Get agents under current user
+    $agents = User::with(['roles', 'children.poneWinePlayer'])
+        ->whereHas('roles', fn ($q) => $q->where('role_id', self::AGENT_ROLE))
+        ->when(!$isOwner && !$isMaster, function ($q) use ($authUser) {
+            $q->where('agent_id', $authUser->id); // Limit if not Owner/Master
+        })
+        ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code')
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-        // dd($reportData);
-        $users = $agents->map(function ($agent) use ($reportData) {
-            $report = $reportData->get($agent->id);
-            $poneWineTotalAmt = $agent->children->flatMap->poneWinePlayer->sum('win_lose_amt');
+    // Build reportData from place_bets grouped by agent
+    $reportData = DB::table('users as a')
+        ->join('users as p', 'p.agent_id', '=', 'a.id') // p = player
+        ->join('place_bets', 'place_bets.member_account', '=', 'p.user_name')
+        ->groupBy('a.id')
+        ->selectRaw('a.id as agent_id, SUM(place_bets.bet_amount) as total_bet_amount, SUM(place_bets.prize_amount) as total_payout_amount')
+        ->get()
+        ->keyBy('agent_id');
 
-            return (object) [
-                'id' => $agent->id,
-                'name' => $agent->name,
-                'user_name' => $agent->user_name,
-                'referral_code' => $agent->referral_code,
-                'phone' => $agent->phone,
-                'balanceFloat' => $agent->balanceFloat,
-                'status' => $agent->status,
-                'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
-            ];
-        });
+    // Map agents to output structure
+    $users = $agents->map(function ($agent) use ($reportData) {
+        $report = $reportData->get($agent->id);
+        $poneWineTotalAmt = $agent->children->flatMap->poneWinePlayer->sum('win_lose_amt');
 
-        return view('admin.agent.index', compact('users'));
-    }
+        return (object) [
+            'id' => $agent->id,
+            'name' => $agent->name,
+            'user_name' => $agent->user_name,
+            'referral_code' => $agent->referral_code,
+            'phone' => $agent->phone,
+            'balanceFloat' => $agent->balanceFloat,
+            'status' => $agent->status,
+            'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
+        ];
+    });
+
+    return view('admin.agent.index', compact('users'));
+}
+
+
+    // public function index(): View
+    // {
+    //     // if (! Gate::allows('agent_index')) {
+    //     //     abort(403);
+    //     // }
+
+    //     $agents = User::with(['roles', 'children.poneWinePlayer'])->whereHas('roles', fn ($q) => $q->where('role_id', self::AGENT_ROLE))
+    //         ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code')
+    //         ->where('agent_id', auth()->id())
+    //         ->orderBy('created_at', 'desc')
+    //         ->get();
+
+    //     $reportData = DB::table('users as a')
+    //         ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
+    //         ->join('place_bets', 'place_bets.member_account', '=', 'p.user_name')
+    //         ->groupBy('a.id')
+    //         ->selectRaw('a.id as agent_id,SUM(place_bets.bet_amount) as total_bet_amount,SUM(place_bets.prize_amount) as total_payout_amount')
+    //         ->get()
+    //         ->keyBy('agent_id');
+
+    //     // dd($reportData);
+    //     $users = $agents->map(function ($agent) use ($reportData) {
+    //         $report = $reportData->get($agent->id);
+    //         $poneWineTotalAmt = $agent->children->flatMap->poneWinePlayer->sum('win_lose_amt');
+
+    //         return (object) [
+    //             'id' => $agent->id,
+    //             'name' => $agent->name,
+    //             'user_name' => $agent->user_name,
+    //             'referral_code' => $agent->referral_code,
+    //             'phone' => $agent->phone,
+    //             'balanceFloat' => $agent->balanceFloat,
+    //             'status' => $agent->status,
+    //             'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
+    //         ];
+    //     });
+
+    //     return view('admin.agent.index', compact('users'));
+    // }
 
     /**
      * Show the form for creating a new resource.
