@@ -54,7 +54,8 @@ class PermissionRoleTableSeeder extends Seeder
         'Agent' => [
             'agent_access',
             'subagent_index', 'subagent_create', 'subagent_edit', 'subagent_delete',
-            'transfer_log', 'make_transfer', 'player_index', 'player_create', 'player_edit', 'player_delete',
+            'transfer_log', 'make_transfer', 
+            'player_index', 'player_create', 'player_edit', 'player_delete',
             'game_type_access', 'deposit', 'withdraw', 'bank', 'contact', 'subagent_access',
             'view_player_list',
             'view_player_report',
