@@ -193,7 +193,8 @@
                                 </a>
                             </li>
                         @endcan
-                        @if(Auth::user()->hasPermission('process_withdraw'))
+                        <!-- @if(Auth::user()->hasPermission('process_withdraw')) -->
+                        @can('subagent_access')
                             <li class="nav-item">
                                 <a href="{{ route('admin.agent.withdraw') }}"
                                     class="nav-link {{ Route::current()->getName() == 'admin.agent.withdraw' ? 'active' : '' }}">
@@ -203,8 +204,11 @@
                                     </p>
                                 </a>
                             </li>
-                        @endif
-                        @if(Auth::user()->hasPermission('process_deposit') || Auth::user()->hasPermission('view_deposit_requests'))
+                        @endcan
+                        <!-- @endif
+                        @if(Auth::user()->hasPermission('process_deposit') || Auth::user()->hasPermission('view_deposit_requests')) -->
+                        <!-- @can('process_deposit') -->
+                        @can('subagent_access')
                             <li class="nav-item">
                                 <a href="{{ route('admin.agent.deposit') }}"
                                     class="nav-link {{ Route::current()->getName() == 'admin.agent.deposit' ? 'active' : '' }}">
@@ -214,7 +218,8 @@
                                     </p>
                                 </a>
                             </li>
-                        @endif
+                        @endcan
+                        <!-- @endif -->
                         @can('transfer_log')
                         <li class="nav-item">
                             <a href="{{ route('admin.transfer-logs.index') }}"
