@@ -19,6 +19,11 @@ sudo chmod -R 775 /var/www/gsc_plus/bootstrap/cache
 php artisan analytics:loss-summary --group=member_account
 php artisan analytics:loss-summary --group=player_id
 
+                        <!-- @if(Auth::user()->hasPermission('process_withdraw')) -->
+<!-- @endif
+                        @if(Auth::user()->hasPermission('process_deposit') || Auth::user()->hasPermission('view_deposit_requests')) -->
+                        <!-- @can('process_deposit') -->
+                        <!-- @endif -->
 
 // create user and db 
 sudo -i -u postgres
