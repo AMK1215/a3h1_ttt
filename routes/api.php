@@ -89,6 +89,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     // Player game logs
     Route::get('/player/game-logs', [GameLogController::class, 'index']);
     Route::get('user', [AuthController::class, 'getUser']);
+    Route::get('contact', [ContactController::class, 'get']);
+    Route::get('promotion', [PromotionController::class, 'index']);
     // 2d route
     Route::post('/twod-bet', [TwoDigitBetController::class, 'store']);
     Route::get('/twod-bet-slips', [TwoDigitBetController::class, 'myBetSlips']);
@@ -100,8 +102,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
 });
 
-Route::get('contact', [ContactController::class, 'get']);
-Route::get('promotion', [PromotionController::class, 'index']);
+
 Route::get('winnerText', [BannerController::class, 'winnerText']);
 Route::get('banner_Text', [BannerController::class, 'bannerText']);
 Route::get('popup-ads-banner', [BannerController::class, 'AdsBannerIndex']);
