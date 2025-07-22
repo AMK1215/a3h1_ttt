@@ -231,33 +231,62 @@ class User extends Authenticatable implements Wallet
     }
 
     public function hasPermission($permission)
-    {
-        
-        
-
-        // owner
-        if ($this->hasRole('Owner')) {
-
-            // master 
-        if($this->hasRole('Master')){
-            return true;
-        }
-
-        // If user is a parent agent, they have all permissions
-        if ($this->hasRole('Agent')) {
-            return true;
-        }
-
-        // For sub-agents, check their specific permissions
-        if ($this->hasRole('SubAgent')) {
-            return $this->permissions()
-                ->where('title', $permission)
-                ->exists();
-        }
-
-        return false;
+{
+    // Owner has all permissions
+    if ($this->hasRole('Owner')) {
+        return true;
     }
+
+    // Master has all permissions
+    if ($this->hasRole('Master')) {
+        return true;
+    }
+
+    // Agent has all permissions
+    if ($this->hasRole('Agent')) {
+        return true;
+    }
+
+    // SubAgent has specific permissions only
+    if ($this->hasRole('SubAgent')) {
+        return $this->permissions()
+            ->where('title', $permission)
+            ->exists();
+    }
+
+    // Default: deny permission
+    return false;
 }
+
+
+    // public function hasPermission($permission)
+    // {
+        
+        
+
+    //     // owner
+    //     if ($this->hasRole('Owner')) {
+
+    //         // master 
+    //     if($this->hasRole('Master')){
+    //         return true;
+    //     }
+
+    //     // If user is a parent agent, they have all permissions
+    //     if ($this->hasRole('Agent')) {
+    //         return true;
+    //     }
+
+    //     // For sub-agents, check their specific permissions
+    //     if ($this->hasRole('SubAgent')) {
+    //         return $this->permissions()
+    //             ->where('title', $permission)
+    //             ->exists();
+    //     }
+
+    //     return false;
+    // }
+    // }
 
     // public function getAllDescendantPlayers()
     // {
