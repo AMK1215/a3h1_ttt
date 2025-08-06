@@ -22,11 +22,17 @@ class WithDrawRequestController extends Controller
             'amount' => ['required', 'integer', 'min: 10000'],
             'account_number' => ['required', 'regex:/^[0-9]+$/'],
             'payment_type_id' => ['required', 'integer'],
+            'password' => ['required']
         ]);
 
         $player = Auth::user();
+
+        if(!Hash::check($request->password,$player->password)){
+            return $this->error('', 'Your password is wrong!', 401);
+        }
+
         if ($request->amount > $player->balanceFloat) {
-            return $this->error('', 'Insufficient Balance', 401);
+            return $this->error('', 'Insufficient Balance!', 401);
         }
 
         $withdraw = WithDrawRequest::create([

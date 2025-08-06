@@ -58,36 +58,36 @@ class MasterController extends Controller
         //     '403 Forbidden |You cannot  Access this page because you do not have permission'
         // );
 
-        $masters = User::with(['roles', 'children.children.poneWinePlayer'])->whereHas('roles', fn ($q) => $q->where('role_id', self::MASTER_ROLE))
+        $users = User::with(['roles'])->whereHas('roles', fn ($q) => $q->where('role_id', self::MASTER_ROLE))
             ->select('id', 'name', 'user_name', 'phone', 'status')
             ->where('agent_id', auth()->id())
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
-        $reportData = DB::table('users as m')
-            ->join('users as a', 'a.agent_id', '=', 'm.id')          // agent
-            ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
-            ->join('reports', 'reports.member_name', '=', 'p.user_name')
-            ->groupBy('m.id')
-            ->selectRaw('m.id as master_id,SUM(reports.bet_amount) as total_bet_amount,SUM(reports.payout_amount) as total_payout_amount')
-            ->get()
-            ->keyBy('master_id');
+        // $reportData = DB::table('users as m')
+        //     ->join('users as a', 'a.agent_id', '=', 'm.id')          // agent
+        //     ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
+        //     ->join('reports', 'reports.member_name', '=', 'p.user_name')
+        //     ->groupBy('m.id')
+        //     ->selectRaw('m.id as master_id,SUM(reports.bet_amount) as total_bet_amount,SUM(reports.payout_amount) as total_payout_amount')
+        //     ->get()
+        //     ->keyBy('master_id');
 
         // dd($reportData);
-        $users = $masters->map(function ($master) use ($reportData) {
-            $report = $reportData->get($master->id);
-            $poneWineTotalAmt = $master->children->flatMap->children->flatMap->poneWinePlayer->sum('win_lose_amt');
+        // $users = $masters->map(function ($master) use ($reportData) {
+        //     $report = $reportData->get($master->id);
+        //     $poneWineTotalAmt = $master->children->flatMap->children->flatMap->poneWinePlayer->sum('win_lose_amt');
 
-            return (object) [
-                'id' => $master->id,
-                'name' => $master->name,
-                'user_name' => $master->user_name,
-                'phone' => $master->phone,
-                'balanceFloat' => $master->balanceFloat,
-                'status' => $master->status,
-                'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
-            ];
-        });
+        //     return (object) [
+        //         'id' => $master->id,
+        //         'name' => $master->name,
+        //         'user_name' => $master->user_name,
+        //         'phone' => $master->phone,
+        //         'balanceFloat' => $master->balanceFloat,
+        //         'status' => $master->status,
+        //         'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
+        //     ];
+        // });
 
         return view('admin.master.index', compact('users'));
     }
@@ -140,9 +140,9 @@ class MasterController extends Controller
                     'new_balance' => $user->balanceFloat + $request->amount,
                 ]
             );
-        }
-        // Log the transfer
-         TransferLog::create([
+
+            // Log the transfer
+            TransferLog::create([
             'from_user_id' => $admin->id,
             'to_user_id' => $user->id,
             'amount' => $inputs['amount'],
@@ -154,6 +154,9 @@ class MasterController extends Controller
                 'new_balance' => $user->balanceFloat + $inputs['amount'],
             ],
         ]);
+
+        }
+
 
         session()->forget('user_name');
 

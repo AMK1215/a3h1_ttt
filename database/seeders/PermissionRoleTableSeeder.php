@@ -13,18 +13,18 @@ class PermissionRoleTableSeeder extends Seeder
     private const ROLE_PERMISSIONS = [
         'Owner' => [
             'owner_access',
-            'agent_index', 
-            //'agent_create', 
+            'agent_index',
+            //'agent_create',
             //'agent_edit',
            // 'agent_delete',
-            'transfer_log', 
+            'transfer_log',
             'make_transfer',
-            'game_type_access', 
-            'provider_access', 
-            'provider_create', 
-            'provider_edit', 
-            'provider_delete', 
-            'provider_index', 
+            'game_type_access',
+            'provider_access',
+            'provider_create',
+            'provider_edit',
+            'provider_delete',
+            'provider_index',
             // 'master_access',
             // 'master_index',
             'master_create',
@@ -54,7 +54,7 @@ class PermissionRoleTableSeeder extends Seeder
         'Agent' => [
             'agent_access',
             'subagent_index', 'subagent_create', 'subagent_edit', 'subagent_delete',
-            'transfer_log', 'make_transfer', 
+            'transfer_log', 'make_transfer',
             'player_index', 'player_create', 'player_edit', 'player_delete',
             'game_type_access', 'deposit', 'withdraw', 'bank', 'contact', 'subagent_access',
             'view_player_list',
@@ -156,7 +156,7 @@ class PermissionRoleTableSeeder extends Seeder
     private function cleanupExistingAssignments(): void
     {
         try {
-            DB::table('permission_role')->truncate();
+            DB::table('permission_role')->delete();
             Log::info('Cleaned up existing permission assignments');
         } catch (\Exception $e) {
             Log::error('Failed to cleanup existing permission assignments: '.$e->getMessage());

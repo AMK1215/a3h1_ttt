@@ -93,7 +93,7 @@ class RoleUserTableSeeder extends Seeder
     private function cleanupExistingAssignments(): void
     {
         try {
-            DB::table('role_user')->truncate();
+            DB::table('role_user')->delete();
             Log::info('Cleaned up existing role assignments');
         } catch (\Exception $e) {
             Log::error('Failed to cleanup existing role assignments: '.$e->getMessage());

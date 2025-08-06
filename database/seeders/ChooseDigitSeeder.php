@@ -14,7 +14,7 @@ class ChooseDigitSeeder extends Seeder
     public function run(): void
     {
         // Clear existing data
-        DB::table('choose_digits')->truncate();
+        DB::table('choose_digits')->delete();
 
         // Insert choose close digits from 00 to 99
         for ($i = 0; $i <= 99; $i++) {

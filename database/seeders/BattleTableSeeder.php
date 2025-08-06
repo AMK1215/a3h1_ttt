@@ -15,7 +15,7 @@ class BattleTableSeeder extends Seeder
     public function run()
     {
         // Clear existing data (optional, but good for idempotent seeding)
-        DB::table('battles')->truncate(); // Or delete() if you don't want to reset IDs
+        DB::table('battles')->delete(); // Or delete() if you don't want to reset IDs
 
         DB::table('battles')->insert([
             [

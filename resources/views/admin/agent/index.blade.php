@@ -38,11 +38,14 @@
                                     <th>Status</th>
                                     <th>Balance</th>
                                     <!-- <th>Total Winlose Amt</th> -->
+                                   @can('agent_access')
                                     <th>Action</th>
+                                    <th>Transfer</th>
+                                   @endcan
                                     <!-- <th>Transfer</th> -->
                                 </thead>
                                 <tbody >
-                                   
+
                                     @if (isset($users))
                                         @if (count($users) > 0)
                                             @foreach ($users as $user)
@@ -70,7 +73,7 @@
                                                     $totalAmt = $poneWintAmt + $result + $betNResults; --}}
 
                                                     <!-- <td class="{{$user->win_lose >= 0 ? 'text-success text-bold' : 'text-danger text-bold'}}">{{ number_format($user->win_lose) }}</td> -->
-
+                                            @can('agent_access')
                                                     <td>
                                                         @if ($user->status == 1)
                                                             <a onclick="event.preventDefault(); document.getElementById('banUser-{{ $user->id }}').submit();"
@@ -105,6 +108,8 @@
                                                             <i class="fas fa-edit text-info" style="font-size: 20px;"></i>
                                                         </a>
                                                     </td>
+                                                @endcan
+                                                @can('agent_access')
                                                     <td>
                                                         <a href="{{ route('admin.agent.getCashIn', $user->id) }}"
                                                             data-bs-toggle="tooltip"
@@ -125,7 +130,8 @@
                                                             <i class="fas fa-right-left text-white mr-1"></i>
                                                             Logs
                                                         </a>
-                                                        <!-- <a href="{{ route('admin.PlayertransferLogDetail', $user->id) }}"
+
+                                                        {{-- <!-- <a href="{{ route('admin.PlayertransferLogDetail', $user->id) }}"
                                                             data-bs-toggle="tooltip" data-bs-original-title="Reports"
                                                             class="btn btn-info btn-sm">
                                                             <i class="fa-solid fa-money-bill-transfer"></i>
@@ -145,6 +151,7 @@
                                         </a> --}}
 
                                                     </td>
+                                                @endcan
                                                 </tr>
                                             @endforeach
                                         @else
@@ -158,6 +165,9 @@
                                 </tbody>
 
                             </table>
+                        <div class="d-flex justify-content-center">
+                            {{$users->links()}}
+                        </div>
                         </div>
                         <!-- /.card-body -->
                     </div>

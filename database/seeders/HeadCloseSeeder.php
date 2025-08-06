@@ -14,7 +14,7 @@ class HeadCloseSeeder extends Seeder
     public function run(): void
     {
         // Clear existing data
-        DB::table('head_closes')->truncate();
+        DB::table('head_closes')->delete();
 
         // Insert head close digits from 0 to 9
         for ($i = 0; $i <= 9; $i++) {
