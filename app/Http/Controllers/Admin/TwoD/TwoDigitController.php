@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers\Admin\TwoD;
 
+use App\Enums\DigitTransactionName;
 use App\Http\Controllers\Controller;
 use App\Models\TwoDigit\Bettle;
 use App\Models\TwoDigit\ChooseDigit;
-use App\Models\TwoDigit\HeadClose;
-use App\Models\TwoDigit\TwoBet; // Import JsonResponse
+use App\Models\TwoDigit\HeadClose; // Import JsonResponse
+use App\Models\TwoDigit\TwoBet;
 use App\Models\TwoDigit\TwoBetSlip;
 use App\Models\TwoDigit\TwoDLimit;
 use App\Models\TwoDigit\TwoDResult;
 use App\Models\User;
+use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -290,12 +292,32 @@ class TwoDigitController extends Controller
                 if ($isWinner) {
                     $prize = $bet->bet_amount * 80;
 
-                    // Update player wallet (users table, main_balance)
+                    // Update player wallet using WalletService
                     $player = User::find($bet->user_id);
                     if ($player) {
-                        $player->main_balance += $prize;
-                        $player->save();
-                        Log::info('Prize added to player', ['user_id' => $player->id, 'prize' => $prize]);
+                        try {
+                            app(WalletService::class)->deposit($player, $prize, DigitTransactionName::TwoDigitBetWin, [
+                                'bet_id' => $bet->id,
+                                'win_number' => $win_number,
+                                'session' => $session,
+                                'result_date' => $request->result_date,
+                                'bet_amount' => $bet->bet_amount,
+                                'prize_amount' => $prize,
+                                'slip_id' => $bet->slip_id,
+                            ]);
+                            Log::info('Prize deposited to player wallet', [
+                                'user_id' => $player->id,
+                                'prize' => $prize,
+                                'new_balance' => $player->balanceFloat,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to deposit prize to player wallet', [
+                                'user_id' => $player->id,
+                                'prize' => $prize,
+                                'error' => $e->getMessage(),
+                            ]);
+                            throw $e;
+                        }
                     }
 
                     // Update bet as win
@@ -326,6 +348,81 @@ class TwoDigitController extends Controller
 
         return redirect()->route('admin.twod.settings')->with('success', 'TwoD Result added and winners paid.');
     }
+
+    // public function storeTwoDResult(Request $request)
+    // {
+    //     Log::info('storeTwoDResult called', ['request' => $request->all()]);
+    //     $request->validate([
+    //         'two_d_result' => 'required|integer',
+    //         'session' => 'required|string',
+    //         'result_date' => 'required|date',
+    //         'result_time' => 'required|date_format:H:i',
+    //     ]);
+    //     $win_number = $request->two_d_result;
+
+    //     DB::transaction(function () use ($request, $win_number) {
+    //         $bettle = Bettle::where('status', 1)->first();
+    //         // Enforce result_time based on session
+    //         $session = $request->session;
+    //         $result_time = $session === 'morning' ? '12:00' : ($session === 'evening' ? '16:30' : $request->result_time);
+    //         $twoDResult = TwoDResult::create([
+    //             'win_number' => $win_number,
+    //             'session' => $session,
+    //             'result_date' => $request->result_date,
+    //             'result_time' => $result_time,
+    //             'battle_id' => $bettle->id,
+    //         ]);
+    //         Log::info('TwoDResult created', ['twoDResult' => $twoDResult]);
+
+    //         // 2. Find all bets for session/date
+    //         $allBets = TwoBet::where('session', $session)
+    //             ->where('game_date', $request->result_date)
+    //             ->get();
+    //         Log::info('Fetched bets', ['count' => $allBets->count()]);
+
+    //         // 3. Process each bet
+    //         foreach ($allBets as $bet) {
+    //             $isWinner = $bet->bet_number == $win_number;
+
+    //             if ($isWinner) {
+    //                 $prize = $bet->bet_amount * 80;
+
+    //                 // Update player wallet (users table, main_balance)
+    //                 $player = User::find($bet->user_id);
+    //                 if ($player) {
+    //                     $player->main_balance += $prize;
+    //                     $player->save();
+    //                     Log::info('Prize added to player', ['user_id' => $player->id, 'prize' => $prize]);
+    //                 }
+
+    //                 // Update bet as win
+    //                 $bet->win_lose = true;
+    //                 $bet->potential_payout = $prize;
+    //                 $bet->prize_sent = true;
+    //                 Log::info('Bet marked as win', ['bet_id' => $bet->id, 'prize' => $prize]);
+    //             } else {
+    //                 // Update bet as lose
+    //                 $bet->win_lose = false;
+    //                 $bet->potential_payout = 0;
+    //                 $bet->prize_sent = false;
+    //                 Log::info('Bet marked as lose', ['bet_id' => $bet->id]);
+    //             }
+
+    //             // Update all common fields
+    //             $bet->bet_status = true; // settled
+    //             $bet->bet_result = $win_number;
+    //             $bet->save();
+    //         }
+
+    //         // 4. Update all slips for this session/date to completed
+    //         $updated = TwoBetSlip::where('session', $session)
+    //             ->whereDate('created_at', $request->result_date)
+    //             ->update(['status' => 'completed']);
+    //         Log::info('Updated slips to completed', ['updated_count' => $updated]);
+    //     });
+
+    //     return redirect()->route('admin.twod.settings')->with('success', 'TwoD Result added and winners paid.');
+    // }
 
     // daily leger
 

@@ -106,6 +106,9 @@ class DatabaseSeeder extends Seeder
             OperatorSeeder::class,
             TwoDLimitSeeder::class,
             ShanProductSeeder::class,
+            ThreeDDrawSessionSeeder::class,
+            ThreeDLimitSeeder::class,
+            ThreeDCloseDigitSeeder::class,
         ]);
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\UserType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MasterRequest;
 use App\Http\Requests\TransferLogRequest;
+use App\Models\Admin\Permission;
 use App\Models\TransferLog;
 use App\Models\User;
 use App\Services\WalletService;
@@ -22,7 +23,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
-use App\Models\Admin\Permission;
 
 class MasterController extends Controller
 {
@@ -143,20 +143,19 @@ class MasterController extends Controller
 
             // Log the transfer
             TransferLog::create([
-            'from_user_id' => $admin->id,
-            'to_user_id' => $user->id,
-            'amount' => $inputs['amount'],
-            'type' => 'top_up',
-            'description' => 'Initial Top Up from Owner to new Master',
-            'meta' => [
-                'transaction_type' => TransactionName::CreditTransfer->value,
-                'old_balance' => $user->balanceFloat,
-                'new_balance' => $user->balanceFloat + $inputs['amount'],
-            ],
-        ]);
+                'from_user_id' => $admin->id,
+                'to_user_id' => $user->id,
+                'amount' => $inputs['amount'],
+                'type' => 'top_up',
+                'description' => 'Initial Top Up from Owner to new Master',
+                'meta' => [
+                    'transaction_type' => TransactionName::CreditTransfer->value,
+                    'old_balance' => $user->balanceFloat,
+                    'new_balance' => $user->balanceFloat + $inputs['amount'],
+                ],
+            ]);
 
         }
-
 
         session()->forget('user_name');
 

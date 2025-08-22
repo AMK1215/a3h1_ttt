@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\Shan\ShanPlayerReportController;
 use App\Http\Controllers\Admin\SubAccountController;
+use App\Http\Controllers\Admin\ThreeD\ThreeDigitController;
 use App\Http\Controllers\Admin\TopTenWithdrawController;
 use App\Http\Controllers\Admin\TransferLogController;
 use App\Http\Controllers\Admin\TwoD\TwoDigitController;
@@ -255,6 +256,22 @@ Route::group([
     // Route::get('twod/daily-ledger-evening', [TwoDigitController::class, 'dailyLedgerEvening'])->name('twod.daily-ledger-evening');
     Route::get('twod/daily-winners', [TwoDigitController::class, 'dailyWinners'])->name('twod.daily-winners');
     // two digit end
+
+    // three digit start
+    Route::get('threed/settings', [ThreeDigitController::class, 'settings'])->name('threed.settings');
+    Route::post('three-d-limit/store', [ThreeDigitController::class, 'storeThreeDLimit'])->name('three-d-limit.store');
+    Route::post('three-d-result/store', [ThreeDigitController::class, 'storeThreeDResult'])->name('three-d-result.store');
+    Route::get('threed/bet-slip-list', [ThreeDigitController::class, 'betSlipList'])->name('threed.bet-slip-list');
+    Route::get('threed/bet-slip-details/{slip_id}', [ThreeDigitController::class, 'betSlipDetails'])->name('threed.bet-slip-details');
+    Route::get('threed/daily-ledger', [ThreeDigitController::class, 'dailyLedger'])->name('threed.daily-ledger');
+    Route::get('threed/daily-winners', [ThreeDigitController::class, 'dailyWinners'])->name('threed.daily-winners');
+    Route::get('threed/break-groups', [ThreeDigitController::class, 'getBreakGroups'])->name('threed.break-groups');
+    Route::get('threed/quick-patterns', [ThreeDigitController::class, 'getQuickPatterns'])->name('threed.quick-patterns');
+    Route::post('three-d-close-digit/toggle-status', [ThreeDigitController::class, 'toggleThreeDCloseDigit'])->name('three-d-close-digit.toggle-status');
+    Route::get('threed/close-digits', [ThreeDigitController::class, 'getThreeDCloseDigits'])->name('threed.close-digits');
+    Route::post('three-d-draw-session/toggle-status', [ThreeDigitController::class, 'toggleDrawSession'])->name('three-d-draw-session.toggle-status');
+    Route::post('three-d-draw-session/trigger-transition', [ThreeDigitController::class, 'triggerSessionTransition'])->name('three-d-draw-session.trigger-transition');
+    // three digit end
     // shan player report
     Route::get('/shan-player-report', [ShanPlayerReportController::class, 'index'])->name('shan.player.report');
 });

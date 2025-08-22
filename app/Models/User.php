@@ -231,43 +231,40 @@ class User extends Authenticatable implements Wallet
     }
 
     public function hasPermission($permission)
-{
-    // Owner has all permissions
-    if ($this->hasRole('Owner')) {
-        return true;
+    {
+        // Owner has all permissions
+        if ($this->hasRole('Owner')) {
+            return true;
+        }
+
+        // Master has all permissions
+        if ($this->hasRole('Master')) {
+            return true;
+        }
+
+        // Agent has all permissions
+        if ($this->hasRole('Agent')) {
+            return true;
+        }
+
+        // SubAgent has specific permissions only
+        if ($this->hasRole('SubAgent')) {
+            return $this->permissions()
+                ->where('title', $permission)
+                ->exists();
+        }
+
+        // Default: deny permission
+        return false;
     }
-
-    // Master has all permissions
-    if ($this->hasRole('Master')) {
-        return true;
-    }
-
-    // Agent has all permissions
-    if ($this->hasRole('Agent')) {
-        return true;
-    }
-
-    // SubAgent has specific permissions only
-    if ($this->hasRole('SubAgent')) {
-        return $this->permissions()
-            ->where('title', $permission)
-            ->exists();
-    }
-
-    // Default: deny permission
-    return false;
-}
-
 
     // public function hasPermission($permission)
     // {
-        
-        
 
     //     // owner
     //     if ($this->hasRole('Owner')) {
 
-    //         // master 
+    //         // master
     //     if($this->hasRole('Master')){
     //         return true;
     //     }

@@ -20,9 +20,8 @@ class ContactController extends Controller
 
         $admin = $player->parent->parent->agent_id;
 
-
         $contact = Contact::where('agent_id', $admin)->get();
-        //$contact = Contact::get();
+        // $contact = Contact::get();
 
         return $this->success(ContactResource::collection($contact));
     }
