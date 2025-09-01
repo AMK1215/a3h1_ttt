@@ -35,7 +35,7 @@ class ShanTransactionController extends Controller
             'players' => 'required|array',
             'players.*.player_id' => 'required|string',
             'players.*.bet_amount' => 'required|numeric|min:0',
-            'players.*.win_lose_status' => 'required|integer|in:0,1',
+            'players.*.win_lose_status' => 'required|integer|in:0,1'
         ]);
 
         // Generate unique wager_code for idempotency
@@ -57,9 +57,7 @@ class ShanTransactionController extends Controller
             // PLAYERS: Process each player, calculate total net win/loss
             foreach ($validated['players'] as $playerData) {
                 $player = User::where('user_name', $playerData['player_id'])->first();
-                if (! $player) {
-                    continue;
-                }
+                if (!$player) continue;
 
                 $oldBalance = $player->wallet->balanceFloat;
                 $betAmount = $playerData['bet_amount'];
@@ -116,12 +114,12 @@ class ShanTransactionController extends Controller
             if ($bankerAmountChange > 0) {
                 $this->walletService->deposit($banker, $bankerAmountChange, TransactionName::BankerDeposit, [
                     'description' => 'Banker receive (from all players)',
-                    'wager_code' => $wager_code,
+                    'wager_code' => $wager_code
                 ]);
             } elseif ($bankerAmountChange < 0) {
                 $this->walletService->withdraw($banker, abs($bankerAmountChange), TransactionName::BankerWithdraw, [
                     'description' => 'Banker payout (to all players)',
-                    'wager_code' => $wager_code,
+                    'wager_code' => $wager_code
                 ]);
             }
             // If $bankerAmountChange == 0, do nothing
@@ -154,7 +152,6 @@ class ShanTransactionController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
             return $this->error('Transaction failed', $e->getMessage(), 500);
         }
 
