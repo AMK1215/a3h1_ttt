@@ -75,6 +75,9 @@ class BalanceUpdateCallbackController extends Controller
 
             foreach ($validated['players'] as $playerData) {
                 $user = User::where('user_name', $playerData['player_id'])->first();
+                $agent_id = $user->agent_id;
+                $member_account = $user->user_name;
+                $agent_name = $user->agent->user_name;
 
                 if (!$user) {
                     Log::error('ClientSite: Player not found for balance update. Rolling back transaction.', [
@@ -127,6 +130,9 @@ class BalanceUpdateCallbackController extends Controller
             ProcessedWagerCallback::create([
                 'wager_code' => $validated['wager_code'],
                 'game_type_id' => 15,
+                'agent_id' => $agent_id,
+                'member_account' => $member_account,
+                'agent_name' => $agent_name,
                 'players' => json_encode($validated['players']), // ✅ encode array to JSON string
                 'banker_balance' => $validated['banker_balance'],
                 'timestamp' => $validated['timestamp'],

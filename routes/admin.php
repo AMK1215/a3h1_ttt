@@ -204,6 +204,7 @@ Route::group([
     Route::get('wager-list/export-csv', [WagerListController::class, 'exportCsv'])->name('wager-list.export-csv');
     Route::get('wager-list/{id}', [WagerListController::class, 'show'])->name('wager-list.show');
     Route::get('wager-list/{wager_code}/game-history', [WagerListController::class, 'gameHistory'])->name('wager-list.game-history');
+    Route::post('wager-list/truncate-processed-callbacks', [WagerListController::class, 'truncateProcessedWagerCallbacks'])->name('wager-list.truncate-processed-callbacks');
 
     Route::get('local-wager', [LocalWagerController::class, 'index'])->name('local-wager.index');
     Route::get('local-wager/{id}', [LocalWagerController::class, 'show'])->name('local-wager.show');

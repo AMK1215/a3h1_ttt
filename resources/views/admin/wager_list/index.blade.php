@@ -38,6 +38,7 @@
                             </select>
                             <button id="fetchWagers" class="btn btn-primary">Fetch</button>
                             <button id="exportCSV" class="btn btn-success mx-1">Export to CSV</button>
+                            <button id="truncateProcessedCallbacks" class="btn btn-danger mx-1">Clear Processed Callbacks</button>
                             <span id="loading" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Loading...</span>
                         </div>
                         <div id="error-message" class="alert alert-danger" style="display:none;"></div>
@@ -166,6 +167,39 @@ $('#exportCSV').on('click', function() {
     };
     let query = $.param(params);
     window.location = '{{ route("admin.wager-list.export-csv") }}?' + query;
+});
+
+$('#truncateProcessedCallbacks').on('click', function() {
+    if (confirm('Are you sure you want to delete ALL data from the processed wager callbacks table? This action cannot be undone!')) {
+        if (confirm('This will permanently delete all processed wager callback records. Are you absolutely sure?')) {
+            $(this).prop('disabled', true).text('Deleting...');
+            
+            $.ajax({
+                url: '{{ route("admin.wager-list.truncate-processed-callbacks") }}',
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Success: ' + response.message);
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    let message = 'An error occurred while deleting data.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    }
+                    alert('Error: ' + message);
+                },
+                complete: function() {
+                    $('#truncateProcessedCallbacks').prop('disabled', false).text('Clear Processed Callbacks');
+                }
+            });
+        }
+    }
 });
 </script>
 @endsection

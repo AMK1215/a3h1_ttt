@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -155,5 +156,30 @@ class WagerListController extends Controller
         $content = $data['content'] ?? '';
 
         return view('admin.wager_list.game_history', compact('content'));
+    }
+
+    /**
+     * Truncate all data from processed_wager_callbacks table
+     */
+    public function truncateProcessedWagerCallbacks()
+    {
+        try {
+            // Get count before truncating for logging
+            $count = DB::table('processed_wager_callbacks')->count();
+            
+            // Truncate the table
+            DB::table('processed_wager_callbacks')->truncate();
+            
+            return response()->json([
+                'success' => true,
+                'message' => "Successfully deleted {$count} records from processed wager callbacks table.",
+                'deleted_count' => $count
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to truncate processed wager callbacks table: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
