@@ -640,6 +640,13 @@
                                                 <p>Shan Player Report</p>
                                             </a>
                                         </li>
+                                        <li class="nav-item">
+                                                <a href="{{ route('admin.shan.report.transactions') }}"
+                                                class="nav-link {{ Route::current()->getName() == 'admin.shan.report.transactions' ? 'active' : '' }}">
+                                                <i class="far fa-circle nav-icon"></i>
+                                                <p>Shan Report Transactions</p>
+                                            </a>
+                                        </li>
 
 
                                 </ul>

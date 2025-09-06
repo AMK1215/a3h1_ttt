@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\Shan\ShanPlayerReportController;
+use App\Http\Controllers\Admin\Shan\ShanReportTransactionController;
 use App\Http\Controllers\Admin\SubAccountController;
 use App\Http\Controllers\Admin\ThreeD\ThreeDigitController;
 use App\Http\Controllers\Admin\TopTenWithdrawController;
@@ -275,4 +276,9 @@ Route::group([
     // three digit end
     // shan player report
     Route::get('/shan-player-report', [ShanPlayerReportController::class, 'index'])->name('shan.player.report');
+    
+    // shan report transactions
+    Route::get('/shan-report-transactions', [ShanReportTransactionController::class, 'index'])->name('shan.report.transactions');
+    Route::post('/shan-report-transactions/fetch', [ShanReportTransactionController::class, 'getReportTransactions'])->name('shan.report.transactions.fetch');
+    Route::post('/shan-report-transactions/member', [ShanReportTransactionController::class, 'getMemberTransactions'])->name('shan.report.transactions.member');
 });
