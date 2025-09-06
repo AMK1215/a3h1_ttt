@@ -31,12 +31,8 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label for="agent_code">Agent Code *</label>
-                                        <select id="agent_code" name="agent_code" class="form-control" required>
-                                            <option value="">Select Agent</option>
-                                            @foreach($agents as $agent)
-                                                <option value="{{ $agent->shan_agent_code }}">{{ $agent->name }} ({{ $agent->shan_agent_code }})</option>
-                                            @endforeach
-                                        </select>
+                                        <input type="text" id="agent_code" name="agent_code" class="form-control" 
+                                               placeholder="Enter agent code (e.g., SCT931)" required>
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -54,7 +50,8 @@
                                 <div class="col-md-2">
                                     <div class="form-group">
                                         <label for="member_account">Member Account</label>
-                                        <input type="text" id="member_account" name="member_account" class="form-control" placeholder="Enter member account">
+                                        <input type="text" id="member_account" name="member_account" class="form-control" 
+                                               placeholder="Enter member account">
                                     </div>
                                 </div>
                                 <div class="col-md-2">
@@ -81,11 +78,14 @@
                 <!-- Loading indicator -->
                 <div id="loading" class="text-center" style="display:none;">
                     <i class="fa fa-spinner fa-spin fa-2x"></i>
-                    <p>Loading data...</p>
+                    <p>Loading data from external API...</p>
                 </div>
 
                 <!-- Error message -->
                 <div id="error-message" class="alert alert-danger" style="display:none;"></div>
+
+                <!-- API Response Status -->
+                <div id="api-status" class="alert" style="display:none;"></div>
 
                 <!-- Agent Info Card -->
                 <div id="agent-info-card" class="card" style="display:none;">
@@ -158,7 +158,7 @@ $(document).ready(function() {
 
         // Validate required fields
         if (!formData.agent_code) {
-            showError('Please select an agent code.');
+            showError('Please enter an agent code.');
             return;
         }
 
@@ -172,7 +172,7 @@ $(document).ready(function() {
             data: formData,
             success: function(response) {
                 if (response.success) {
-                    displayReportData(response.data);
+                    displayApiResponse(response.data);
                 } else {
                     showError(response.message || 'Failed to fetch data');
                 }
@@ -190,15 +190,36 @@ $(document).ready(function() {
         });
     }
 
-    function displayReportData(data) {
+    function displayApiResponse(apiData) {
+        // Display API status
+        displayApiStatus(apiData.status, apiData.message);
+        
         // Display agent info
-        displayAgentInfo(data.agent_info);
+        if (apiData.data && apiData.data.agent_info) {
+            displayAgentInfo(apiData.data.agent_info);
+        }
         
         // Display summary
-        displaySummary(data.summary);
+        if (apiData.data && apiData.data.summary) {
+            displaySummary(apiData.data.summary);
+        }
         
         // Display report data
-        displayReportTable(data.report_data, data.filters.group_by);
+        if (apiData.data && apiData.data.report_data) {
+            displayReportTable(apiData.data.report_data, apiData.data.filters.group_by);
+        }
+    }
+
+    function displayApiStatus(status, message) {
+        const statusClass = status === 'Request was successful.' ? 'alert-success' : 'alert-warning';
+        const content = `
+            <strong>API Status:</strong> ${status}<br>
+            <strong>Message:</strong> ${message}
+        `;
+        $('#api-status').removeClass('alert-success alert-warning alert-danger')
+                       .addClass(statusClass)
+                       .html(content)
+                       .show();
     }
 
     function displayAgentInfo(agentInfo) {
@@ -428,6 +449,7 @@ $(document).ready(function() {
     }
 
     function hideAllCards() {
+        $('#api-status').hide();
         $('#agent-info-card').hide();
         $('#summary-card').hide();
         $('#report-card').hide();

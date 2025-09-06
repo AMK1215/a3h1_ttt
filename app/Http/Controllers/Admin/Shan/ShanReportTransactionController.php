@@ -3,129 +3,86 @@
 namespace App\Http\Controllers\Admin\Shan;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\ReportTransaction;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class ShanReportTransactionController extends Controller
 {
+    private $apiUrl = 'https://luckymillion.pro/api/report-transactions';
+
     /**
      * Display the Shan Report Transaction interface
      */
     public function index()
     {
-        // Get all agents with shan_agent_code for the dropdown
-        $agents = User::where('type', 20) // Agent type
-                    ->whereNotNull('shan_agent_code')
-                    ->select('id', 'name', 'shan_agent_code', 'user_name')
-                    ->orderBy('name')
-                    ->get();
-
-        return view('admin.shan.report_transaction.index', compact('agents'));
+        return view('admin.shan.report_transaction.index');
     }
 
     /**
-     * Get report transactions via AJAX
+     * Fetch report transactions from external API
      */
-    public function getReportTransactions(Request $request)
+    public function fetchReportTransactions(Request $request)
     {
         try {
             // Validate the request
-            $validator = Validator::make($request->all(), [
-                'agent_code' => 'required|string|exists:users,shan_agent_code',
+            $request->validate([
+                'agent_code' => 'required|string',
                 'date_from' => 'nullable|date',
                 'date_to' => 'nullable|date',
                 'member_account' => 'nullable|string',
                 'group_by' => 'nullable|in:agent_id,member_account,both',
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
+            $params = [
+                'agent_code' => $request->input('agent_code'),
+            ];
+
+            // Add optional parameters
+            if ($request->filled('date_from')) {
+                $params['date_from'] = $request->input('date_from');
+            }
+            if ($request->filled('date_to')) {
+                $params['date_to'] = $request->input('date_to');
+            }
+            if ($request->filled('member_account')) {
+                $params['member_account'] = $request->input('member_account');
+            }
+            if ($request->filled('group_by')) {
+                $params['group_by'] = $request->input('group_by');
             }
 
-            $agentCode = $request->input('agent_code');
-            $dateFrom = $request->input('date_from');
-            $dateTo = $request->input('date_to');
-            $memberAccount = $request->input('member_account');
-            $groupBy = $request->input('group_by', 'both');
+            Log::info('ShanReportTransaction: Calling external API', [
+                'url' => $this->apiUrl,
+                'params' => $params
+            ]);
 
-            // Get the agent by agent_code (shan_agent_code)
-            $agent = User::where('shan_agent_code', $agentCode)
-                        ->where('type', 20) // Ensure it's an agent
-                        ->first();
+            // Call the external API
+            $response = Http::timeout(30)->post($this->apiUrl, $params);
 
-            if (!$agent) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Agent with code ' . $agentCode . ' not found or is not a valid agent'
-                ], 404);
-            }
-
-            // Build the base query
-            $query = ReportTransaction::query();
-
-            // Filter by agent's players (all descendant players)
-            $playerIds = $agent->getAllDescendantPlayers()->pluck('id');
-            $query->whereIn('user_id', $playerIds);
-
-            // Date filter
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween('created_at', [
-                    $dateFrom . ' 00:00:00',
-                    $dateTo . ' 23:59:59',
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                Log::info('ShanReportTransaction: API response received', [
+                    'status' => $data['status'] ?? 'unknown',
+                    'data_count' => count($data['data']['report_data'] ?? [])
                 ]);
-            }
 
-            // Member account filter
-            if ($memberAccount) {
-                $query->where('member_account', $memberAccount);
-            }
-
-            // Group by logic
-            if ($groupBy === 'agent_id') {
-                $results = $this->getGroupedByAgent($query);
-            } elseif ($groupBy === 'member_account') {
-                $results = $this->getGroupedByMemberAccount($query);
+                return response()->json([
+                    'success' => true,
+                    'data' => $data
+                ]);
             } else {
-                // Default: group by both agent_id and member_account
-                $results = $this->getGroupedByBoth($query);
+                Log::error('ShanReportTransaction: API call failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch data from external API. Status: ' . $response->status()
+                ], $response->status());
             }
-
-            Log::info('ShanReportTransaction: Report generated', [
-                'agent_code' => $agentCode,
-                'agent_id' => $agent->id,
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
-                'member_account' => $memberAccount,
-                'group_by' => $groupBy,
-                'total_records' => count($results)
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'agent_info' => [
-                        'agent_id' => $agent->id,
-                        'agent_code' => $agent->shan_agent_code,
-                        'agent_name' => $agent->name,
-                    ],
-                    'filters' => [
-                        'date_from' => $dateFrom,
-                        'date_to' => $dateTo,
-                        'member_account' => $memberAccount,
-                        'group_by' => $groupBy,
-                    ],
-                    'report_data' => $results,
-                    'summary' => $this->getSummary($results, $groupBy)
-                ]
-            ]);
 
         } catch (\Exception $e) {
             Log::error('ShanReportTransaction: Error occurred', [
@@ -142,86 +99,65 @@ class ShanReportTransactionController extends Controller
     }
 
     /**
-     * Get individual transactions for a specific member account
+     * Get member transactions from external API
      */
-    public function getMemberTransactions(Request $request)
+    public function fetchMemberTransactions(Request $request)
     {
         try {
-            $validator = Validator::make($request->all(), [
-                'agent_code' => 'required|string|exists:users,shan_agent_code',
+            // Validate the request
+            $request->validate([
+                'agent_code' => 'required|string',
                 'member_account' => 'required|string',
                 'date_from' => 'nullable|date',
                 'date_to' => 'nullable|date',
                 'limit' => 'nullable|integer|min:1|max:100',
             ]);
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
+            $params = [
+                'agent_code' => $request->input('agent_code'),
+                'member_account' => $request->input('member_account'),
+            ];
+
+            // Add optional parameters
+            if ($request->filled('date_from')) {
+                $params['date_from'] = $request->input('date_from');
+            }
+            if ($request->filled('date_to')) {
+                $params['date_to'] = $request->input('date_to');
+            }
+            if ($request->filled('limit')) {
+                $params['limit'] = $request->input('limit');
             }
 
-            $agentCode = $request->input('agent_code');
-            $memberAccount = $request->input('member_account');
-            $dateFrom = $request->input('date_from');
-            $dateTo = $request->input('date_to');
-            $limit = $request->input('limit', 50);
-
-            // Get the agent
-            $agent = User::where('shan_agent_code', $agentCode)
-                        ->where('type', 20)
-                        ->first();
-
-            if (!$agent) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Agent with code ' . $agentCode . ' not found'
-                ], 404);
-            }
-
-            // Build query for specific member account
-            $query = ReportTransaction::where('member_account', $memberAccount);
-
-            // Filter by agent's players
-            $playerIds = $agent->getAllDescendantPlayers()->pluck('id');
-            $query->whereIn('user_id', $playerIds);
-
-            // Date filter
-            if ($dateFrom && $dateTo) {
-                $query->whereBetween('created_at', [
-                    $dateFrom . ' 00:00:00',
-                    $dateTo . ' 23:59:59',
-                ]);
-            }
-
-            $transactions = $query->with('agent:id,user_name,name')
-                                ->orderByDesc('created_at')
-                                ->limit($limit)
-                                ->get();
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'agent_info' => [
-                        'agent_id' => $agent->id,
-                        'agent_code' => $agent->shan_agent_code,
-                        'agent_name' => $agent->name,
-                    ],
-                    'member_account' => $memberAccount,
-                    'filters' => [
-                        'date_from' => $dateFrom,
-                        'date_to' => $dateTo,
-                        'limit' => $limit,
-                    ],
-                    'transactions' => $transactions,
-                    'total_found' => $transactions->count()
-                ]
+            Log::info('ShanReportTransaction: Calling member transactions API', [
+                'params' => $params
             ]);
 
+            // Call the external API for member transactions
+            $memberApiUrl = 'https://luckymillion.pro/api/report-transactions/member';
+            $response = Http::timeout(30)->post($memberApiUrl, $params);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $data
+                ]);
+            } else {
+                Log::error('ShanReportTransaction: Member API call failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to fetch member data from external API. Status: ' . $response->status()
+                ], $response->status());
+            }
+
         } catch (\Exception $e) {
-            Log::error('ShanReportTransaction: Error in getMemberTransactions', [
+            Log::error('ShanReportTransaction: Error in member transactions', [
                 'error' => $e->getMessage(),
                 'request' => $request->all()
             ]);
@@ -231,100 +167,5 @@ class ShanReportTransactionController extends Controller
                 'message' => 'An error occurred while processing the request: ' . $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Group by agent_id only
-     */
-    private function getGroupedByAgent($query)
-    {
-        return $query->selectRaw('
-                agent_id,
-                COUNT(*) as total_transactions,
-                SUM(transaction_amount) as total_transaction_amount,
-                SUM(bet_amount) as total_bet_amount,
-                SUM(valid_amount) as total_valid_amount,
-                AVG(before_balance) as avg_before_balance,
-                AVG(after_balance) as avg_after_balance,
-                MIN(created_at) as first_transaction,
-                MAX(created_at) as last_transaction
-            ')
-            ->groupBy('agent_id')
-            ->with('agent:id,user_name,name')
-            ->orderByDesc('total_transaction_amount')
-            ->get();
-    }
-
-    /**
-     * Group by member_account only
-     */
-    private function getGroupedByMemberAccount($query)
-    {
-        return $query->selectRaw('
-                member_account,
-                COUNT(*) as total_transactions,
-                SUM(transaction_amount) as total_transaction_amount,
-                SUM(bet_amount) as total_bet_amount,
-                SUM(valid_amount) as total_valid_amount,
-                AVG(before_balance) as avg_before_balance,
-                AVG(after_balance) as avg_after_balance,
-                MIN(created_at) as first_transaction,
-                MAX(created_at) as last_transaction
-            ')
-            ->groupBy('member_account')
-            ->orderByDesc('total_transaction_amount')
-            ->get();
-    }
-
-    /**
-     * Group by both agent_id and member_account
-     */
-    private function getGroupedByBoth($query)
-    {
-        return $query->selectRaw('
-                agent_id,
-                member_account,
-                COUNT(*) as total_transactions,
-                SUM(transaction_amount) as total_transaction_amount,
-                SUM(bet_amount) as total_bet_amount,
-                SUM(valid_amount) as total_valid_amount,
-                AVG(before_balance) as avg_before_balance,
-                AVG(after_balance) as avg_after_balance,
-                MIN(created_at) as first_transaction,
-                MAX(created_at) as last_transaction
-            ')
-            ->groupBy('agent_id', 'member_account')
-            ->with('agent:id,user_name,name')
-            ->orderByDesc('total_transaction_amount')
-            ->get();
-    }
-
-    /**
-     * Get summary statistics
-     */
-    private function getSummary($results, $groupBy)
-    {
-        $totalTransactions = $results->sum('total_transactions');
-        $totalTransactionAmount = $results->sum('total_transaction_amount');
-        $totalBetAmount = $results->sum('total_bet_amount');
-        $totalValidAmount = $results->sum('total_valid_amount');
-
-        $summary = [
-            'total_groups' => $results->count(),
-            'total_transactions' => $totalTransactions,
-            'total_transaction_amount' => number_format($totalTransactionAmount, 2),
-            'total_bet_amount' => number_format($totalBetAmount, 2),
-            'total_valid_amount' => number_format($totalValidAmount, 2),
-        ];
-
-        if ($groupBy === 'agent_id' || $groupBy === 'both') {
-            $summary['unique_agents'] = $results->pluck('agent_id')->unique()->count();
-        }
-
-        if ($groupBy === 'member_account' || $groupBy === 'both') {
-            $summary['unique_members'] = $results->pluck('member_account')->unique()->count();
-        }
-
-        return $summary;
     }
 }

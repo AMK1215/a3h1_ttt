@@ -279,6 +279,6 @@ Route::group([
     
     // shan report transactions
     Route::get('/shan-report-transactions', [ShanReportTransactionController::class, 'index'])->name('shan.report.transactions');
-    Route::post('/shan-report-transactions/fetch', [ShanReportTransactionController::class, 'getReportTransactions'])->name('shan.report.transactions.fetch');
-    Route::post('/shan-report-transactions/member', [ShanReportTransactionController::class, 'getMemberTransactions'])->name('shan.report.transactions.member');
+    Route::post('/shan-report-transactions/fetch', [ShanReportTransactionController::class, 'fetchReportTransactions'])->name('shan.report.transactions.fetch');
+    Route::post('/shan-report-transactions/member', [ShanReportTransactionController::class, 'fetchMemberTransactions'])->name('shan.report.transactions.member');
 });
