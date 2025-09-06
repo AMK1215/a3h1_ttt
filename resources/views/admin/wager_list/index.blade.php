@@ -177,9 +177,6 @@ $('#truncateProcessedCallbacks').on('click', function() {
             $.ajax({
                 url: '{{ route("admin.wager-list.truncate-processed-callbacks") }}',
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
                 success: function(response) {
                     if (response.success) {
                         alert('Success: ' + response.message);
