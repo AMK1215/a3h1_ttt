@@ -598,7 +598,12 @@ $(document).ready(function() {
             data: formData,
             success: function(response) {
                 if (response.success) {
-                    displayMemberTransactions(response.data);
+                    // Pass the response data along with status and message
+                    displayMemberTransactions({
+                        ...response.data,
+                        status: response.status,
+                        message: response.message
+                    });
                 } else {
                     showMemberError(response.message || 'Failed to fetch member transactions');
                 }
@@ -617,6 +622,7 @@ $(document).ready(function() {
     }
 
     function displayMemberTransactions(apiData) {
+        
         // Display API status
         displayMemberApiStatus(apiData.status, apiData.message);
         
@@ -626,9 +632,15 @@ $(document).ready(function() {
         }
         
         // Display transactions
-        if (apiData.transactions) {
+        if (apiData.transactions && Array.isArray(apiData.transactions)) {
             displayMemberTransactionsTable(apiData.transactions);
+        } else {
+            // Show empty table with message
+            $('#member-transactions-table-body').html('<tr><td colspan="14" class="text-center">No transactions found</td></tr>');
         }
+        
+        // Always show the member transactions data section
+        $('#member-transactions-data').show();
     }
 
     function displayMemberApiStatus(status, message) {

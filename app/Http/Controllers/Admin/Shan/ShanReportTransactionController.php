@@ -140,9 +140,16 @@ class ShanReportTransactionController extends Controller
             if ($response->successful()) {
                 $data = $response->json();
                 
+                Log::info('ShanReportTransaction: Member API response received', [
+                    'status' => $data['status'] ?? 'unknown',
+                    'transactions_count' => count($data['data']['transactions'] ?? [])
+                ]);
+                
                 return response()->json([
                     'success' => true,
-                    'data' => $data
+                    'data' => $data['data'] ?? $data, // Handle both nested and direct response
+                    'status' => $data['status'] ?? 'Request was successful.',
+                    'message' => $data['message'] ?? 'Member transactions retrieved successfully'
                 ]);
             } else {
                 Log::error('ShanReportTransaction: Member API call failed', [
