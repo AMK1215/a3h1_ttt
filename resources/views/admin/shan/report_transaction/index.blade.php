@@ -125,6 +125,118 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Member Transactions Section -->
+                <div id="member-transactions-section" class="card" style="display:none;">
+                    <div class="card-header">
+                        <h3 class="card-title">Member Transactions</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Member Transactions Filter -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="member_transactions_agent_code">Agent Code *</label>
+                                    <input type="text" id="member_transactions_agent_code" class="form-control" 
+                                           placeholder="Enter agent code (e.g., SCT931)" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="member_transactions_member_account">Member Account *</label>
+                                    <input type="text" id="member_transactions_member_account" class="form-control" 
+                                           placeholder="Enter member account" required>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="member_transactions_date_from">Date From</label>
+                                    <input type="date" id="member_transactions_date_from" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="member_transactions_date_to">Date To</label>
+                                    <input type="date" id="member_transactions_date_to" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label for="member_transactions_limit">Limit</label>
+                                    <select id="member_transactions_limit" class="form-control">
+                                        <option value="10">10</option>
+                                        <option value="20" selected>20</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="button" id="fetchMemberTransactions" class="btn btn-success btn-block">Fetch</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Member Transactions Loading -->
+                        <div id="member-loading" class="text-center" style="display:none;">
+                            <i class="fa fa-spinner fa-spin fa-2x"></i>
+                            <p>Loading member transactions...</p>
+                        </div>
+
+                        <!-- Member Transactions Error -->
+                        <div id="member-error-message" class="alert alert-danger" style="display:none;"></div>
+
+                        <!-- Member Transactions API Status -->
+                        <div id="member-api-status" class="alert" style="display:none;"></div>
+
+                        <!-- Member Transactions Data -->
+                        <div id="member-transactions-data" style="display:none;">
+                            <!-- Member Info -->
+                            <div id="member-info-card" class="card mb-3">
+                                <div class="card-header">
+                                    <h4 class="card-title">Member Information</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div id="member-info-content"></div>
+                                </div>
+                            </div>
+
+                            <!-- Member Transactions Table -->
+                            <div class="table-responsive">
+                                <table id="member-transactions-table" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>User ID</th>
+                                            <th>Transaction Amount</th>
+                                            <th>Bet Amount</th>
+                                            <th>Valid Amount</th>
+                                            <th>Status</th>
+                                            <th>Banker</th>
+                                            <th>Before Balance</th>
+                                            <th>After Balance</th>
+                                            <th>Settled Status</th>
+                                            <th>Wager Code</th>
+                                            <th>Agent Code</th>
+                                            <th>Created At</th>
+                                            <th>Updated At</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="member-transactions-table-body">
+                                        <!-- Dynamic data will be inserted here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -146,6 +258,15 @@ $(document).ready(function() {
         e.preventDefault();
         fetchReportData();
     });
+
+    // Handle member transactions fetch
+    $('#fetchMemberTransactions').on('click', function() {
+        fetchMemberTransactions();
+    });
+
+    // Set default dates for member transactions
+    $('#member_transactions_date_to').val(today.toISOString().split('T')[0]);
+    $('#member_transactions_date_from').val(thirtyDaysAgo.toISOString().split('T')[0]);
 
     function fetchReportData() {
         const formData = {
@@ -448,12 +569,192 @@ $(document).ready(function() {
         }, 5000);
     }
 
+    function fetchMemberTransactions() {
+        const formData = {
+            agent_code: $('#member_transactions_agent_code').val(),
+            member_account: $('#member_transactions_member_account').val(),
+            date_from: $('#member_transactions_date_from').val(),
+            date_to: $('#member_transactions_date_to').val(),
+            limit: $('#member_transactions_limit').val()
+        };
+
+        // Validate required fields
+        if (!formData.agent_code) {
+            showMemberError('Please enter an agent code.');
+            return;
+        }
+        if (!formData.member_account) {
+            showMemberError('Please enter a member account.');
+            return;
+        }
+
+        // Show loading
+        showMemberLoading(true);
+        hideMemberCards();
+
+        $.ajax({
+            url: '{{ route("admin.shan.report.transactions.member") }}',
+            method: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    displayMemberTransactions(response.data);
+                } else {
+                    showMemberError(response.message || 'Failed to fetch member transactions');
+                }
+            },
+            error: function(xhr) {
+                let message = 'An error occurred while fetching member transactions.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                showMemberError(message);
+            },
+            complete: function() {
+                showMemberLoading(false);
+            }
+        });
+    }
+
+    function displayMemberTransactions(apiData) {
+        // Display API status
+        displayMemberApiStatus(apiData.status, apiData.message);
+        
+        // Display member info
+        if (apiData.agent_info && apiData.member_account) {
+            displayMemberInfo(apiData.agent_info, apiData.member_account, apiData.filters);
+        }
+        
+        // Display transactions
+        if (apiData.transactions) {
+            displayMemberTransactionsTable(apiData.transactions);
+        }
+    }
+
+    function displayMemberApiStatus(status, message) {
+        const statusClass = status === 'Request was successful.' ? 'alert-success' : 'alert-warning';
+        const content = `
+            <strong>API Status:</strong> ${status}<br>
+            <strong>Message:</strong> ${message}
+        `;
+        $('#member-api-status').removeClass('alert-success alert-warning alert-danger')
+                              .addClass(statusClass)
+                              .html(content)
+                              .show();
+    }
+
+    function displayMemberInfo(agentInfo, memberAccount, filters) {
+        const content = `
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Agent ID:</strong> ${agentInfo.agent_id}
+                </div>
+                <div class="col-md-3">
+                    <strong>Agent Code:</strong> ${agentInfo.agent_code}
+                </div>
+                <div class="col-md-3">
+                    <strong>Agent Name:</strong> ${agentInfo.agent_name}
+                </div>
+                <div class="col-md-3">
+                    <strong>Member Account:</strong> ${memberAccount}
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-3">
+                    <strong>Date From:</strong> ${filters.date_from || 'All'}
+                </div>
+                <div class="col-md-3">
+                    <strong>Date To:</strong> ${filters.date_to || 'All'}
+                </div>
+                <div class="col-md-3">
+                    <strong>Limit:</strong> ${filters.limit}
+                </div>
+                <div class="col-md-3">
+                    <strong>Total Found:</strong> ${filters.total_found || 'N/A'}
+                </div>
+            </div>
+        `;
+        $('#member-info-content').html(content);
+        $('#member-transactions-data').show();
+    }
+
+    function displayMemberTransactionsTable(transactions) {
+        // Clear previous data
+        $('#member-transactions-table-body').empty();
+
+        // Add data rows
+        let rows = '';
+        transactions.forEach(function(transaction) {
+            const statusBadge = transaction.status === '1' ? 
+                '<span class="badge badge-success">Win</span>' : 
+                '<span class="badge badge-danger">Loss</span>';
+            
+            const settledStatusBadge = getSettledStatusBadge(transaction.settled_status);
+            
+            const row = `
+                <tr>
+                    <td>${transaction.id}</td>
+                    <td>${transaction.user_id}</td>
+                    <td>${parseFloat(transaction.transaction_amount).toFixed(2)}</td>
+                    <td>${parseFloat(transaction.bet_amount).toFixed(2)}</td>
+                    <td>${parseFloat(transaction.valid_amount).toFixed(2)}</td>
+                    <td>${statusBadge}</td>
+                    <td>${transaction.banker}</td>
+                    <td>${parseFloat(transaction.before_balance).toFixed(2)}</td>
+                    <td>${parseFloat(transaction.after_balance).toFixed(2)}</td>
+                    <td>${settledStatusBadge}</td>
+                    <td>${transaction.wager_code}</td>
+                    <td>${transaction.agent_code}</td>
+                    <td>${formatDateTime(transaction.created_at)}</td>
+                    <td>${formatDateTime(transaction.updated_at)}</td>
+                </tr>
+            `;
+            rows += row;
+        });
+        $('#member-transactions-table-body').html(rows);
+    }
+
+    function getSettledStatusBadge(settledStatus) {
+        switch(settledStatus) {
+            case 'settled_win':
+                return '<span class="badge badge-success">Settled Win</span>';
+            case 'settled_loss':
+                return '<span class="badge badge-danger">Settled Loss</span>';
+            case 'pending':
+                return '<span class="badge badge-warning">Pending</span>';
+            default:
+                return `<span class="badge badge-secondary">${settledStatus}</span>`;
+        }
+    }
+
+    function showMemberLoading(show) {
+        if (show) {
+            $('#member-loading').show();
+        } else {
+            $('#member-loading').hide();
+        }
+    }
+
+    function showMemberError(message) {
+        $('#member-error-message').text(message).show();
+        setTimeout(function() {
+            $('#member-error-message').hide();
+        }, 5000);
+    }
+
+    function hideMemberCards() {
+        $('#member-api-status').hide();
+        $('#member-transactions-data').hide();
+        $('#member-error-message').hide();
+    }
+
     function hideAllCards() {
         $('#api-status').hide();
         $('#agent-info-card').hide();
         $('#summary-card').hide();
         $('#report-card').hide();
         $('#error-message').hide();
+        $('#member-transactions-section').show(); // Show member transactions section when main data is fetched
     }
 });
 </script>

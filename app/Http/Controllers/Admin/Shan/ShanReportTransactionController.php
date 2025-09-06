@@ -134,7 +134,7 @@ class ShanReportTransactionController extends Controller
             ]);
 
             // Call the external API for member transactions
-            $memberApiUrl = 'https://luckymillion.pro/api/report-transactions/member';
+            $memberApiUrl = 'https://luckymillion.pro/api/member-transactions';
             $response = Http::timeout(30)->post($memberApiUrl, $params);
 
             if ($response->successful()) {
