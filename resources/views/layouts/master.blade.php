@@ -621,7 +621,7 @@
                                     </a>
                                 </li> -->
                                 @can('owner_access')
-                                <!-- <li
+                                <li
                                 class="nav-item">
                                 <a href="#" class="nav-link">
                                     <i class="fas fa-tools"></i>
@@ -650,7 +650,7 @@
 
 
                                 </ul>
-                            </li> -->
+                            </li> 
                                 @endcan
                             </ul>
                         </li>
