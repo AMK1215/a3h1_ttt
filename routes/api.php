@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\DepositRequestController;
 use App\Http\Controllers\Api\V1\Game\GameController;
 use App\Http\Controllers\Api\V1\Game\GSCPlusProviderController;
 use App\Http\Controllers\Api\V1\Game\LaunchGameController;
+use App\Http\Controllers\Api\V1\Game\ProviderLaunchGameController;
 //use App\Http\Controllers\Api\V1\Game\ProviderTransactionCallbackController;
 use App\Http\Controllers\Api\V1\Shan\ShanLaunchGameController;
 //use App\Http\Controllers\Api\V1\Game\ShanPlayerHistoryController;
@@ -167,5 +168,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('launch-game', [ShanLaunchGameController::class, 'launchGame']);
     });
 });
+
+// Provider route
+Route::post('/provider/launch-game', [ProviderLaunchGameController::class, 'launchGameForClient']);
 
 // shan route end

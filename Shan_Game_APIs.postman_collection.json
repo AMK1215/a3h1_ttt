@@ -1,0 +1,323 @@
+{
+	"info": {
+		"_postman_id": "shan-game-apis-collection",
+		"name": "Shan Game APIs",
+		"description": "Complete collection of Shan Game APIs including balance management, game launching, and transaction processing.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_name\": \"{{member_account}}\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Authenticate user and get bearer token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Balance Management",
+			"item": [
+				{
+					"name": "Get Balance (Shan)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate timestamp",
+									"pm.environment.set(\"request_time\", Math.floor(Date.now() / 1000));",
+									"",
+									"// Generate signature",
+									"const operator_code = pm.environment.get(\"operator_code\");",
+									"const request_time = pm.environment.get(\"request_time\");",
+									"const action = \"getbalance\";",
+									"const secret_key = pm.environment.get(\"secret_key\");",
+									"",
+									"const signature = CryptoJS.MD5(operator_code + request_time + action + secret_key).toString();",
+									"pm.environment.set(\"signature\", signature);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batch_requests\": [\n        {\n            \"member_account\": \"{{member_account}}\",\n            \"product_code\": {{product_code}}\n        }\n    ],\n    \"operator_code\": \"{{operator_code}}\",\n    \"currency\": \"MMK\",\n    \"sign\": \"{{signature}}\",\n    \"request_time\": {{request_time}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/shan/balance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shan",
+								"balance"
+							]
+						},
+						"description": "Get player balance for Shan games"
+					},
+					"response": []
+				},
+				{
+					"name": "Shankomee Get Balance",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate timestamp",
+									"pm.environment.set(\"request_time\", Math.floor(Date.now() / 1000));",
+									"",
+									"// Generate signature",
+									"const operator_code = pm.environment.get(\"operator_code\");",
+									"const request_time = pm.environment.get(\"request_time\");",
+									"const action = \"getbalance\";",
+									"const secret_key = pm.environment.get(\"secret_key\");",
+									"",
+									"const signature = CryptoJS.MD5(operator_code + request_time + action + secret_key).toString();",
+									"pm.environment.set(\"signature\", signature);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"batch_requests\": [\n        {\n            \"member_account\": \"{{member_account}}\",\n            \"product_code\": {{product_code}},\n            \"balance\": 1500.50\n        }\n    ],\n    \"operator_code\": \"{{operator_code}}\",\n    \"currency\": \"MMK\",\n    \"request_time\": {{request_time}},\n    \"sign\": \"{{signature}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/shan/shangetbalance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shan",
+								"shangetbalance"
+							]
+						},
+						"description": "Get balance for Shankomee integration"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Game Management",
+			"item": [
+				{
+					"name": "Launch Game (Shan)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{bearer_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_code\": {{product_code}},\n    \"game_type\": \"slot\",\n    \"nickname\": \"PlayerNick\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/shankomee/launch-game",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shankomee",
+								"launch-game"
+							]
+						},
+						"description": "Launch a Shan game for authenticated player"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transaction Management",
+			"item": [
+				{
+					"name": "Create Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"banker\": {\n        \"player_id\": \"BANKER001\"\n    },\n    \"players\": [\n        {\n            \"player_id\": \"{{member_account}}\",\n            \"bet_amount\": 100.00,\n            \"win_lose_status\": 1\n        },\n        {\n            \"player_id\": \"PLAYER002\",\n            \"bet_amount\": 50.00,\n            \"win_lose_status\": 0\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/transactions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"transactions"
+							]
+						},
+						"description": "Create a new game transaction with player and banker data"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Callbacks",
+			"item": [
+				{
+					"name": "Balance Update Callback",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"wager_code\": \"hl1pIjmevmVU\",\n    \"game_type_id\": 15,\n    \"players\": [\n        {\n            \"player_id\": \"{{member_account}}\",\n            \"balance\": 1200.75\n        }\n    ],\n    \"banker_balance\": 50000.00,\n    \"timestamp\": \"2025-01-15T10:30:00Z\",\n    \"total_player_net\": -299.25,\n    \"banker_amount_change\": 299.25\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/shan/client/balance-update",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"shan",
+								"client",
+								"balance-update"
+							]
+						},
+						"description": "Handle balance updates from the game provider"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"// Set default values if not already set",
+					"if (!pm.environment.get(\"base_url\")) {",
+					"    pm.environment.set(\"base_url\", \"https://your-domain.com/api\");",
+					"}",
+					"",
+					"if (!pm.environment.get(\"operator_code\")) {",
+					"    pm.environment.set(\"operator_code\", \"SCT931\");",
+					"}",
+					"",
+					"if (!pm.environment.get(\"member_account\")) {",
+					"    pm.environment.set(\"member_account\", \"PLAYER001\");",
+					"}",
+					"",
+					"if (!pm.environment.get(\"product_code\")) {",
+					"    pm.environment.set(\"product_code\", 1002);",
+					"}",
+					"",
+					"if (!pm.environment.get(\"secret_key\")) {",
+					"    pm.environment.set(\"secret_key\", \"your_secret_key_here\");",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"// Log response for debugging",
+					"console.log(\"Response Status:\", pm.response.status);",
+					"console.log(\"Response Body:\", pm.response.text());",
+					"",
+					"// Auto-extract bearer token from login response",
+					"if (pm.response.json() && pm.response.json().token) {",
+					"    pm.environment.set(\"bearer_token\", pm.response.json().token);",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://your-domain.com/api",
+			"type": "string"
+		},
+		{
+			"key": "operator_code",
+			"value": "SCT931",
+			"type": "string"
+		},
+		{
+			"key": "member_account",
+			"value": "PLAYER001",
+			"type": "string"
+		},
+		{
+			"key": "product_code",
+			"value": 1002,
+			"type": "number"
+		},
+		{
+			"key": "secret_key",
+			"value": "your_secret_key_here",
+			"type": "string"
+		}
+	]
+}

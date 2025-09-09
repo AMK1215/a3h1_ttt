@@ -1,0 +1,582 @@
+openapi: 3.0.3
+info:
+  title: Shan Game API
+  description: |
+    Comprehensive gaming transaction API for operators, agents, and third-party integrations.
+    
+    ## Features
+    - Real-time transaction data access
+    - Agent and member reporting
+    - Flexible filtering and grouping
+    - High-performance data aggregation
+    
+    ## Authentication
+    All endpoints require API key authentication via Authorization header.
+    
+    ## Rate Limits
+    - Standard: 100 requests/minute
+    - Premium: 500 requests/minute  
+    - Enterprise: 1000 requests/minute
+  version: 1.2.0
+  contact:
+    name: API Support
+    email: api-support@luckymillion.pro
+    url: https://docs.luckymillion.pro
+  license:
+    name: Proprietary
+    url: https://luckymillion.pro/license
+
+servers:
+  - url: https://luckymillion.pro/api
+    description: Production server
+  - url: https://staging.luckymillion.pro/api
+    description: Staging server
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /report-transactions:
+    post:
+      summary: Get Report Transactions
+      description: |
+        Retrieve aggregated transaction data grouped by agent and/or member account.
+        Supports flexible filtering by date range, member account, and grouping options.
+      operationId: getReportTransactions
+      tags:
+        - Reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportTransactionsRequest'
+            examples:
+              basic:
+                summary: Basic request
+                value:
+                  agent_code: "SCT931"
+              with_filters:
+                summary: Request with filters
+                value:
+                  agent_code: "SCT931"
+                  date_from: "2025-01-01"
+                  date_to: "2025-01-31"
+                  member_account: "PLAYER0101"
+                  group_by: "both"
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportTransactionsResponse'
+              examples:
+                success:
+                  summary: Successful response
+                  value:
+                    status: "Request was successful."
+                    message: "Report transactions retrieved successfully"
+                    data:
+                      agent_info:
+                        agent_id: 15
+                        agent_code: "SCT931"
+                        agent_name: "TTTGaming"
+                      filters:
+                        date_from: "2025-01-01"
+                        date_to: "2025-01-31"
+                        member_account: "PLAYER0101"
+                        group_by: "both"
+                      report_data:
+                        - agent_id: 15
+                          member_account: "PLAYER0101"
+                          total_transactions: 39
+                          total_transaction_amount: "4260.00"
+                          total_bet_amount: "4080.00"
+                          total_valid_amount: "4080.00"
+                          avg_before_balance: "4053.92"
+                          avg_after_balance: "4025.71"
+                          first_transaction: "2025-09-06 08:05:45"
+                          last_transaction: "2025-09-06 10:08:34"
+                          agent:
+                            id: 15
+                            user_name: "AG19930285"
+                            name: "TTTGaming"
+                      summary:
+                        total_groups: 1
+                        total_transactions: 39
+                        total_transaction_amount: "4,260.00"
+                        total_bet_amount: "4,080.00"
+                        total_valid_amount: "4,080.00"
+                        unique_agents: 1
+                        unique_members: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /member-transactions:
+    post:
+      summary: Get Member Transactions
+      description: |
+        Retrieve individual transaction details for a specific member account.
+        Returns detailed transaction records with full transaction history.
+      operationId: getMemberTransactions
+      tags:
+        - Transactions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberTransactionsRequest'
+            examples:
+              basic:
+                summary: Basic request
+                value:
+                  agent_code: "SCT931"
+                  member_account: "PLAYER0101"
+              with_filters:
+                summary: Request with filters
+                value:
+                  agent_code: "SCT931"
+                  member_account: "PLAYER0101"
+                  date_from: "2025-01-01"
+                  date_to: "2025-01-31"
+                  limit: 20
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberTransactionsResponse'
+              examples:
+                success:
+                  summary: Successful response
+                  value:
+                    status: "Request was successful."
+                    message: "Member transactions retrieved successfully"
+                    data:
+                      agent_info:
+                        agent_id: 15
+                        agent_code: "SCT931"
+                        agent_name: "TTTGaming"
+                      member_account: "PLAYER0101"
+                      filters:
+                        date_from: "2025-01-01"
+                        date_to: "2025-01-31"
+                        limit: 20
+                      transactions:
+                        - id: 243
+                          user_id: 16
+                          transaction_amount: "30.00"
+                          bet_amount: "30.00"
+                          valid_amount: "30.00"
+                          status: "1"
+                          banker: "0"
+                          before_balance: "3525.20"
+                          after_balance: "3555.20"
+                          created_at: "2025-09-06T10:44:31.000000Z"
+                          updated_at: "2025-09-06T10:44:31.000000Z"
+                          agent_id: 15
+                          member_account: "PLAYER0101"
+                          settled_status: "settled_win"
+                          wager_code: "hl1pIjmevmVU"
+                          agent_code: "SCT931"
+                          agent:
+                            id: 15
+                            user_name: "AG19930285"
+                            name: "TTTGaming"
+                      total_found: 20
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: API key in format "Bearer YOUR_API_KEY"
+
+  schemas:
+    ReportTransactionsRequest:
+      type: object
+      required:
+        - agent_code
+      properties:
+        agent_code:
+          type: string
+          description: Agent code to filter by
+          example: "SCT931"
+        date_from:
+          type: string
+          format: date
+          description: Start date filter (YYYY-MM-DD)
+          example: "2025-01-01"
+        date_to:
+          type: string
+          format: date
+          description: End date filter (YYYY-MM-DD)
+          example: "2025-01-31"
+        member_account:
+          type: string
+          description: Specific member account to filter by
+          example: "PLAYER0101"
+        group_by:
+          type: string
+          enum: [agent_id, member_account, both]
+          default: both
+          description: Grouping option for results
+          example: "both"
+
+    MemberTransactionsRequest:
+      type: object
+      required:
+        - agent_code
+        - member_account
+      properties:
+        agent_code:
+          type: string
+          description: Agent code to filter by
+          example: "SCT931"
+        member_account:
+          type: string
+          description: Member account to get transactions for
+          example: "PLAYER0101"
+        date_from:
+          type: string
+          format: date
+          description: Start date filter (YYYY-MM-DD)
+          example: "2025-01-01"
+        date_to:
+          type: string
+          format: date
+          description: End date filter (YYYY-MM-DD)
+          example: "2025-01-31"
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 50
+          description: Maximum number of records to return
+          example: 20
+
+    ReportTransactionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "Request was successful."
+        message:
+          type: string
+          example: "Report transactions retrieved successfully"
+        data:
+          $ref: '#/components/schemas/ReportTransactionsData'
+
+    MemberTransactionsResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "Request was successful."
+        message:
+          type: string
+          example: "Member transactions retrieved successfully"
+        data:
+          $ref: '#/components/schemas/MemberTransactionsData'
+
+    ReportTransactionsData:
+      type: object
+      properties:
+        agent_info:
+          $ref: '#/components/schemas/AgentInfo'
+        filters:
+          $ref: '#/components/schemas/ReportFilters'
+        report_data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportDataItem'
+        summary:
+          $ref: '#/components/schemas/ReportSummary'
+
+    MemberTransactionsData:
+      type: object
+      properties:
+        agent_info:
+          $ref: '#/components/schemas/AgentInfo'
+        member_account:
+          type: string
+          example: "PLAYER0101"
+        filters:
+          $ref: '#/components/schemas/MemberFilters'
+        transactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+        total_found:
+          type: integer
+          example: 20
+
+    AgentInfo:
+      type: object
+      properties:
+        agent_id:
+          type: integer
+          example: 15
+        agent_code:
+          type: string
+          example: "SCT931"
+        agent_name:
+          type: string
+          example: "TTTGaming"
+
+    ReportFilters:
+      type: object
+      properties:
+        date_from:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-01-01"
+        date_to:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-01-31"
+        member_account:
+          type: string
+          nullable: true
+          example: "PLAYER0101"
+        group_by:
+          type: string
+          example: "both"
+
+    MemberFilters:
+      type: object
+      properties:
+        date_from:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-01-01"
+        date_to:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-01-31"
+        limit:
+          type: integer
+          example: 20
+
+    ReportDataItem:
+      type: object
+      properties:
+        agent_id:
+          type: integer
+          example: 15
+        member_account:
+          type: string
+          example: "PLAYER0101"
+        total_transactions:
+          type: integer
+          example: 39
+        total_transaction_amount:
+          type: string
+          example: "4260.00"
+        total_bet_amount:
+          type: string
+          example: "4080.00"
+        total_valid_amount:
+          type: string
+          example: "4080.00"
+        avg_before_balance:
+          type: string
+          example: "4053.92"
+        avg_after_balance:
+          type: string
+          example: "4025.71"
+        first_transaction:
+          type: string
+          format: date-time
+          example: "2025-09-06 08:05:45"
+        last_transaction:
+          type: string
+          format: date-time
+          example: "2025-09-06 10:08:34"
+        agent:
+          $ref: '#/components/schemas/Agent'
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 243
+        user_id:
+          type: integer
+          example: 16
+        transaction_amount:
+          type: string
+          example: "30.00"
+        bet_amount:
+          type: string
+          example: "30.00"
+        valid_amount:
+          type: string
+          example: "30.00"
+        status:
+          type: string
+          enum: ["0", "1"]
+          description: "1 = Win, 0 = Loss"
+          example: "1"
+        banker:
+          type: string
+          enum: ["0", "1"]
+          description: "0 = Player, 1 = Banker"
+          example: "0"
+        before_balance:
+          type: string
+          example: "3525.20"
+        after_balance:
+          type: string
+          example: "3555.20"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-09-06T10:44:31.000000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-09-06T10:44:31.000000Z"
+        agent_id:
+          type: integer
+          example: 15
+        member_account:
+          type: string
+          example: "PLAYER0101"
+        settled_status:
+          type: string
+          enum: [settled_win, settled_loss, pending]
+          example: "settled_win"
+        wager_code:
+          type: string
+          example: "hl1pIjmevmVU"
+        agent_code:
+          type: string
+          example: "SCT931"
+        agent:
+          $ref: '#/components/schemas/Agent'
+
+    Agent:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 15
+        user_name:
+          type: string
+          example: "AG19930285"
+        name:
+          type: string
+          example: "TTTGaming"
+
+    ReportSummary:
+      type: object
+      properties:
+        total_groups:
+          type: integer
+          example: 1
+        total_transactions:
+          type: integer
+          example: 39
+        total_transaction_amount:
+          type: string
+          example: "4,260.00"
+        total_bet_amount:
+          type: string
+          example: "4,080.00"
+        total_valid_amount:
+          type: string
+          example: "4,080.00"
+        unique_agents:
+          type: integer
+          example: 1
+        unique_members:
+          type: integer
+          example: 1
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "Error"
+        message:
+          type: string
+          example: "Error description"
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            field_name: ["Error message"]
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    ValidationError:
+      description: Validation Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Reports
+    description: Aggregated transaction reports and analytics
+  - name: Transactions
+    description: Individual transaction details and history

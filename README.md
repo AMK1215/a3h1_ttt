@@ -1,66 +1,123 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Shan Game API Documentation
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Welcome to the Shan Game API documentation. This repository contains comprehensive documentation for our gaming transaction API that provides real-time access to gaming data for operators, agents, and third-party integrations.
 
-## About Laravel
+## 📚 Documentation Files
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### [API Documentation](SHAN_GAME_API_DOCUMENTATION.md)
+Complete technical documentation including:
+- API endpoints and parameters
+- Request/response examples
+- Error handling
+- Code examples in multiple languages
+- SDK information
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### [OpenAPI Specification](shan-game-api-spec.yaml)
+Machine-readable API specification in OpenAPI 3.0 format:
+- Complete schema definitions
+- Request/response models
+- Authentication details
+- Error responses
+- Can be imported into Postman, Swagger UI, or other API tools
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### [Pricing & Business Information](SHAN_API_PRICING_AND_BUSINESS.md)
+Business and commercial information including:
+- Pricing plans and features
+- Support levels and SLA
+- Security and compliance
+- Custom solutions
+- Contact information
 
-## Learning Laravel
+## 🚀 Quick Start
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 1. Get API Access
+Contact our sales team to get your API credentials:
+- **Email**: sales@luckymillion.pro
+- **Phone**: +1-555-0123
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 2. Choose Your Plan
+- **Standard**: $99/month - 100 requests/minute
+- **Premium**: $299/month - 500 requests/minute  
+- **Enterprise**: $799/month - 1,000 requests/minute
+- **Custom**: Contact sales for enterprise solutions
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. Test the API
+```bash
+curl -X POST https://luckymillion.pro/api/report-transactions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"agent_code": "SCT931"}'
+```
 
-## Laravel Sponsors
+## 🔑 Key Features
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+- **Real-time Data**: Live transaction updates and balance changes
+- **Comprehensive Analytics**: Agent performance and member transaction history
+- **High Performance**: Sub-second response times with 99.9%+ uptime
+- **Enterprise Security**: 256-bit SSL encryption and API key authentication
+- **Developer Friendly**: RESTful design with JSON responses and comprehensive docs
 
-### Premium Partners
+## 📊 API Endpoints
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+### Report Transactions
+```
+POST /api/report-transactions
+```
+Get aggregated transaction data grouped by agent and/or member account.
 
-## Contributing
+### Member Transactions  
+```
+POST /api/member-transactions
+```
+Get individual transaction details for a specific member account.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛠️ SDKs & Libraries
 
-## Code of Conduct
+- **PHP**: Available on GitHub
+- **JavaScript**: Available on NPM
+- **Python**: Available on PyPI
+- **Laravel Package**: `shan/game-api`
+- **Node.js Package**: `shan-game-api`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 📞 Support
 
-## Security Vulnerabilities
+### Technical Support
+- **Email**: api-support@luckymillion.pro
+- **Documentation**: https://docs.luckymillion.pro
+- **Status Page**: https://status.luckymillion.pro
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Business Inquiries
+- **Sales**: sales@luckymillion.pro
+- **Partnerships**: partnerships@luckymillion.pro
+- **Enterprise**: enterprise@luckymillion.pro
 
-## License
+## 🔒 Security & Compliance
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Encryption**: 256-bit SSL/TLS
+- **Compliance**: GDPR, PCI DSS, SOC 2, ISO 27001
+- **Data Protection**: Encrypted storage and transmission
+- **Access Control**: Role-based permissions
+
+## 📈 Use Cases
+
+- **Gaming Operators**: Player management, agent monitoring, risk management
+- **Third-Party Integrations**: CRM systems, analytics platforms, mobile apps
+- **Financial Services**: Payment processing, compliance, fraud detection
+- **White-Label Solutions**: Custom gaming platforms
+
+## 🎯 Getting Started
+
+1. **Review Documentation**: Read the API documentation to understand capabilities
+2. **Contact Sales**: Get your API credentials and choose a plan
+3. **Test Integration**: Use our staging environment for testing
+4. **Go Live**: Deploy to production with confidence
+
+## 📄 License
+
+This API documentation is proprietary and confidential. Unauthorized distribution is prohibited.
+
+© 2025 LuckyMillion Pro. All rights reserved.
+
+---
+
+**Ready to integrate?** [Contact our sales team](mailto:sales@luckymillion.pro) today for a personalized demo and pricing quote.

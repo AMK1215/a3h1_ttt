@@ -59,8 +59,15 @@ class ShanLaunchGameController extends Controller
 
             $agentCode = config('shan_key.agent_code');
             $callBackUrl = config('shan_key.callback_url');
+            $secret_key = config('shan_key.secret_key');
             $balance = $user->balanceFloat;
             $memberAccount = $user->user_name;
+
+            // Generate request time in GMT+8 (Asia/Shanghai) as integer timestamp
+            $requestTime = now('Asia/Shanghai')->timestamp;
+            
+            // Generate signature following the pattern: md5(request_time + secret_key + 'launchgame' + agent_code)
+            $sign = md5($requestTime . $secret_key . 'launchgame' . $agentCode);
 
             // Prepare payload for provider API
             $payload = [
@@ -70,6 +77,8 @@ class ShanLaunchGameController extends Controller
                 'member_account' => $memberAccount,
                 'balance' => $balance,
                 'callback_url' => $callBackUrl,
+                'request_time' => $requestTime,
+                'sign' => $sign,
             ];
 
             if ($request->has('nickname')) {
