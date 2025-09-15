@@ -31,9 +31,9 @@ class AgentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    private const AGENT_ROLE = 3;
+    private const AGENT_ROLE = 4;
 
-    private const PLAYER_ROLE = 5;
+    private const PLAYER_ROLE = 6;
 
     private const PERMISSION_GROUPS = [
         'view_only' => [
@@ -85,18 +85,20 @@ class AgentController extends Controller
 
         // Determine if current user is Owner or Master (can see all agents)
         $isOwner = $authUser->hasRole('Owner');
+        $isSenior = $authUser->hasRole('Senior');
         $isMaster = $authUser->hasRole('Master');
+        // dd($isMaster);
 
         // Get agents under current user
-        $users = User::with(['roles', 'children.poneWinePlayer'])
+        $users = User::with(['roles'])
             ->whereHas('roles', fn ($q) => $q->where('role_id', self::AGENT_ROLE))
-            ->when(! $isOwner && ! $isMaster, function ($q) use ($authUser) {
+            ->when($isMaster, function ($q) use ($authUser) {
                 $q->where('agent_id', $authUser->id); // Limit if not Owner/Master
             })
             ->select('id', 'name', 'user_name', 'phone', 'status', 'referral_code')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
-
+        // dd($users);
         // Build reportData from place_bets grouped by agent
         // $reportData = DB::table('users as a')
         //     ->join('users as p', 'p.agent_id', '=', 'a.id') // p = player
@@ -242,7 +244,7 @@ class AgentController extends Controller
                     'to_user_id' => $agent->id,
                     'amount' => $transfer_amount,
                     'type' => 'top_up',
-                    'description' => 'Initial Top Up from Owner to new agent',
+                    'description' => 'Initial Top Up from Master to new agent',
                     'meta' => [
                         'transaction_type' => TransactionName::CreditTransfer->value,
                         'old_balance' => $agent->balanceFloat,
@@ -353,7 +355,7 @@ class AgentController extends Controller
                 'to_user_id' => $agent->id,
                 'amount' => $request->amount,
                 'type' => 'top_up',
-                'description' => $request->note ?? 'TopUp from owner to '.$agent->user_name,
+                'description' => $request->note ?? 'TopUp from Master to '.$agent->user_name,
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
                     'old_balance' => $agent->balanceFloat,
@@ -401,7 +403,7 @@ class AgentController extends Controller
                 'to_user_id' => $admin->id,
                 'amount' => $request->amount,
                 'type' => 'withdraw',
-                'description' => $request->note ?? 'Withdraw from '.$agent->user_name.' to owner',
+                'description' => $request->note ?? 'Withdraw from '.$agent->user_name.' to master',
                 'meta' => [
                     'transaction_type' => TransactionName::DebitTransfer->value,
                     'old_balance' => $agent->balanceFloat,

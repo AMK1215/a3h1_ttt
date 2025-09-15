@@ -38,7 +38,7 @@
                                     <th>Status</th>
                                     <th>Balance</th>
                                     <!-- <th>Total Winlose Amt</th> -->
-                                   @can('agent_access')
+                                   @can('master_access')
                                     <th>Action</th>
                                     <th>Transfer</th>
                                    @endcan
@@ -73,7 +73,7 @@
                                                     $totalAmt = $poneWintAmt + $result + $betNResults; --}}
 
                                                     <!-- <td class="{{$user->win_lose >= 0 ? 'text-success text-bold' : 'text-danger text-bold'}}">{{ number_format($user->win_lose) }}</td> -->
-                                            @can('agent_access')
+                                            @can('master_access')
                                                     <td>
                                                         @if ($user->status == 1)
                                                             <a onclick="event.preventDefault(); document.getElementById('banUser-{{ $user->id }}').submit();"
@@ -108,8 +108,7 @@
                                                             <i class="fas fa-edit text-info" style="font-size: 20px;"></i>
                                                         </a>
                                                     </td>
-                                                @endcan
-                                                @can('agent_access')
+
                                                     <td>
                                                         <a href="{{ route('admin.agent.getCashIn', $user->id) }}"
                                                             data-bs-toggle="tooltip"

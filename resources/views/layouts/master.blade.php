@@ -140,15 +140,40 @@
 
                         @can('owner_access')
                             <li class="nav-item">
-                                <a href="{{ route('admin.master.index') }}"
-                                    class="nav-link {{ Route::current()->getName() == 'admin.master.index' ? 'active' : '' }}">
+                                <a href="{{ route('admin.senior.index') }}"
+                                    class="nav-link {{ Route::current()->getName() == 'admin.senior.index' ? 'active' : '' }}">
                                     <i class="fas fa-users"></i>
                                     <p>
-                                        Master List
+                                        Senior Lists
                                     </p>
                                 </a>
                             </li>
                         @endcan
+
+                        @can('owner_access')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.master.index') }}"
+                                    class="nav-link {{ Route::current()->getName() == 'admin.master.index' ? 'active' : '' }}">
+                                    <i class="fas fa-users"></i>
+                                    <p>
+                                        Master Lists
+                                    </p>
+                                </a>
+                            </li>
+                        @endcan
+
+                               @can('senior_access')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.master.index') }}"
+                                    class="nav-link {{ Route::current()->getName() == 'admin.master.index' ? 'active' : '' }}">
+                                    <i class="fas fa-users"></i>
+                                    <p>
+                                        Master Lists
+                                    </p>
+                                </a>
+                            </li>
+                        @endcan
+
 
                         @can('agent_index')
                             <li class="nav-item">
@@ -156,7 +181,7 @@
                                     class="nav-link {{ Route::current()->getName() == 'admin.agent.index' ? 'active' : '' }}">
                                     <i class="fas fa-users"></i>
                                     <p>
-                                        Agent List
+                                        Agent Lists
                                     </p>
                                 </a>
                             </li>
@@ -530,7 +555,8 @@
 
                         <!-- agent 3d -->
 
-                        <li
+                       @if (!Auth::user()->hasRole('Senior') && !Auth::user()->hasRole('Master'))
+                            <li
                             class="nav-item">
                             <a href="#" class="nav-link">
                                 <i class="fas fa-file-invoice"></i>
@@ -559,6 +585,7 @@
                                 </p>
                             </a>
                         </li>
+                       @endif
                         @endcan
                                 @can('owner_access')
                                 <li class="nav-item menu-open">

@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\PlayerReportController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\PromotionController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\SeniorController;
 use App\Http\Controllers\Admin\Shan\ShanPlayerReportController;
 use App\Http\Controllers\Admin\Shan\ShanReportTransactionController;
 use App\Http\Controllers\Admin\SubAccountController;
@@ -63,6 +64,21 @@ Route::group([
     Route::resource('paymentTypes', PaymentTypeController::class);
     Route::resource('bank', BankController::class);
     // Route::resource('product', ProductController::class);
+
+    //Senior Start
+    Route::get('senior-index', [SeniorController::class, 'index'])->name('senior.index');
+    Route::get('seinor-index/profie/{id}',[SeniorController::class,'edit'])->name('senior.profile');
+    Route::put('seinor-index/profie/update',[SeniorController::class,'update'])->name('senior.profile.update');
+    Route::get('senior-index/create',[SeniorController::class,'create'])->name('senior.index.create');
+    Route::get('senior-cash-in/{id}', [SeniorController::class, 'getCashIn'])->name('senior.getCashIn');
+    Route::post('senior-cash-in/{id}', [SeniorController::class, 'makeCashIn'])->name('senior.makeCashIn');
+    Route::get('senior/cash-out/{id}', [SeniorController::class, 'getCashOut'])->name('senior.getCashOut');
+    Route::post('senior/cash-out/update/{id}', [SeniorController::class, 'makeCashOut'])
+        ->name('senior.makeCashOut');
+    Route::put('senior/{id}/ban', [SeniorController::class, 'banMaster'])->name('senior.ban');
+    Route::get('senior-changepassword/{id}', [SeniorController::class, 'getChangePassword'])->name('senior.getChangePassword');
+    Route::post('senior-changepassword/{id}', [SeniorController::class, 'makeChangePassword'])->name('senior.makeChangePassword');
+    //Senior End
 
     // master route
     Route::resource('master', MasterController::class);

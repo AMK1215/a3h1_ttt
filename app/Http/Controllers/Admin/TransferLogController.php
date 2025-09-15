@@ -75,6 +75,10 @@ class TransferLogController extends Controller
         if ($user->hasRole('Owner')) {
             // Owner: direct agents
             $relatedIds = $user->children()->whereHas('roles', function ($q) {
+                $q->where('title', 'Senior');
+            })->pluck('id')->toArray();
+        } elseif($user->hasRole('Senior')) {
+            $relatedIds = $user->children()->whereHas('roles', function ($q) {
                 $q->where('title', 'Master');
             })->pluck('id')->toArray();
         } elseif ($user->hasRole('Master')) {
