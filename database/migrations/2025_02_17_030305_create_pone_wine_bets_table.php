@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('pone_wine_bets', function (Blueprint $table) {
             $table->id();
-            $table->string('room_id');
+            $table->integer('room_id');
             $table->string('match_id');
-            $table->boolean('win_number');
+            $table->integer('win_number');
             $table->boolean('status')->default(0);
             $table->timestamps();
         });

@@ -13,11 +13,9 @@ return new class extends Migration
     {
         Schema::create('pone_wine_player_bets', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
+            $table->string('player_id');
             $table->unsignedBigInteger('pone_wine_bet_id');
-            $table->string('user_name');
-            $table->decimal('win_lose_amt');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->decimal('win_lose_amount', 15, 2);
             $table->foreign('pone_wine_bet_id')->references('id')->on('pone_wine_bets')->onDelete('cascade');
             $table->timestamps();
         });

@@ -36,6 +36,8 @@ use App\Http\Controllers\Api\V1\Shan\ShankomeeGetBalanceController;
 use App\Http\Controllers\Api\V1\Shan\BalanceUpdateCallbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PoneWine\PoneWineClientBalanceUpdateController;
+use App\Http\Controllers\Api\PoneWine\PoneWineLaunchGameController;
 
 /*
 |--------------------------------------------------------------------------
@@ -147,12 +149,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
 });
 
-// DigitBet API routes, protected by sanctum middleware
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::post('/digitbet', [DigitBetController::class, 'store']); // Endpoint for placing a bet
-//     Route::get('/digitbet/history', [DigitBetController::class, 'history']); // Endpoint for getting bet history
-//     Route::post('/digit-slot/bet', [DigitSlotController::class, 'bet']);
-// });
+
 
 // shan route start
 Route::post('/transactions', [ShanTransactionController::class, 'ShanTransactionCreate'])->middleware('transaction');
@@ -161,6 +158,12 @@ Route::group(['prefix' => 'shan'], function () {
     Route::post('balance', [ShanGetBalanceController::class, 'getBalance']);
     Route::post('/client/balance-update', [BalanceUpdateCallbackController::class, 'handleBalanceUpdate']); 
 });
+
+// PoneWine Game Match routes
+
+Route::get('/pone-wine/game-match/{matchId}', [App\Http\Controllers\Api\PoneWine\GameMatchController::class, 'getGameMatch']);
+Route::post('/pone-wine/client-report', [PoneWineClientBalanceUpdateController::class, 'PoneWineClientReport']);
+Route::post('/pone-wine/launch-game', [PoneWineLaunchGameController::class, 'launchGame']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // route prefix shan 
@@ -173,3 +176,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
 Route::post('/provider/launch-game', [ProviderLaunchGameController::class, 'launchGameForClient']);
 
 // shan route end
+
+
