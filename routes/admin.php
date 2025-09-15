@@ -70,6 +70,7 @@ Route::group([
     Route::get('seinor-index/profie/{id}',[SeniorController::class,'edit'])->name('senior.profile');
     Route::put('seinor-index/profie/update',[SeniorController::class,'update'])->name('senior.profile.update');
     Route::get('senior-index/create',[SeniorController::class,'create'])->name('senior.index.create');
+    Route::post('senior-index/create',[SeniorController::class,'store'])->name('senior.index.store');
     Route::get('senior-cash-in/{id}', [SeniorController::class, 'getCashIn'])->name('senior.getCashIn');
     Route::post('senior-cash-in/{id}', [SeniorController::class, 'makeCashIn'])->name('senior.makeCashIn');
     Route::get('senior/cash-out/{id}', [SeniorController::class, 'getCashOut'])->name('senior.getCashOut');
@@ -292,7 +293,7 @@ Route::group([
     // three digit end
     // shan player report
     Route::get('/shan-player-report', [ShanPlayerReportController::class, 'index'])->name('shan.player.report');
-    
+
     // shan report transactions
     Route::get('/shan-report-transactions', [ShanReportTransactionController::class, 'index'])->name('shan.report.transactions');
     Route::post('/shan-report-transactions/fetch', [ShanReportTransactionController::class, 'fetchReportTransactions'])->name('shan.report.transactions.fetch');
