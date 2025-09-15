@@ -13,15 +13,17 @@ class RoleUserTableSeeder extends Seeder
 {
     private const ROLE_IDS = [
         UserType::Owner->value => 1,
-        UserType::Master->value => 2,
-        UserType::Agent->value => 3,
-        UserType::SubAgent->value => 4,
-        UserType::Player->value => 5,
-        UserType::SystemWallet->value => 6,
+        UserType::Senior->value => 2,
+        UserType::Master->value => 3,
+        UserType::Agent->value => 4,
+        UserType::SubAgent->value => 5,
+        UserType::Player->value => 6,
+        UserType::SystemWallet->value => 7,
     ];
 
     private const ROLE_NAMES = [
         UserType::Owner->value => 'Owner',
+        UserType::Senior->value => 'Senior',
         UserType::Master->value => 'Master',
         UserType::Agent->value => 'Agent',
         UserType::SubAgent->value => 'SubAgent',

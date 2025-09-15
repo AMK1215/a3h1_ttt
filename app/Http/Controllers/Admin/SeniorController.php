@@ -24,80 +24,20 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
-class MasterController extends Controller
+class SeniorController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    private const MASTER_ROLE = 3;
+    private const SENIOR_ROLE = 2;
 
-    private const PERMISSION_GROUPS = [
-        'master' => [
-            'master_access',
-            'master_index',
-            'master_create',
-            'master_edit',
-            'master_delete',
-            'master_change_password_access',
-            'master_transfer_log',
-            'master_make_transfer',
-            'master_bank',
-            'master_withdraw',
-        ],
-        'agent' => [
-            'agent_index', 'agent_create', 'agent_edit', 'agent_delete',
-            'transfer_log', 'make_transfer',
-        ],
-    ];
+    public function index() {
+        $seniors = User::with(['roles'])
+                        ->whereHas('roles',fn($q) => $q->where('role_id',self::SENIOR_ROLE))
+                        ->select('id', 'name', 'user_name', 'phone', 'status')
+                        ->paginate(10);
 
-    public function index()
-    {
-        // abort_if(
-        //     Gate::denies('master_index'),
-        //     Response::HTTP_FORBIDDEN,
-        //     '403 Forbidden |You cannot  Access this page because you do not have permission'
-        // );
-        // $parent = User::Where('agent_id', auth()->id())->select('id')->first();
-        // dd($parent->id);
-        $parent = Auth::user();
-        $users = User::with(['roles'])->whereHas('roles', fn ($q) => $q->where('role_id', self::MASTER_ROLE))
-            ->select('id', 'name', 'user_name', 'phone', 'status')
-            ->when($parent->hasRole('Senior'),fn($q) => $q->where('agent_id',$parent->id))
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        // $reportData = DB::table('users as m')
-        //     ->join('users as a', 'a.agent_id', '=', 'm.id')          // agent
-        //     ->join('users as p', 'p.agent_id', '=', 'a.id')          // player
-        //     ->join('reports', 'reports.member_name', '=', 'p.user_name')
-        //     ->groupBy('m.id')
-        //     ->selectRaw('m.id as master_id,SUM(reports.bet_amount) as total_bet_amount,SUM(reports.payout_amount) as total_payout_amount')
-        //     ->get()
-        //     ->keyBy('master_id');
-
-        // dd($reportData);
-        // $users = $masters->map(function ($master) use ($reportData) {
-        //     $report = $reportData->get($master->id);
-        //     $poneWineTotalAmt = $master->children->flatMap->children->flatMap->poneWinePlayer->sum('win_lose_amt');
-
-        //     return (object) [
-        //         'id' => $master->id,
-        //         'name' => $master->name,
-        //         'user_name' => $master->user_name,
-        //         'phone' => $master->phone,
-        //         'balanceFloat' => $master->balanceFloat,
-        //         'status' => $master->status,
-        //         'win_lose' => (($report->total_payout_amount ?? 0) - ($report->total_bet_amount ?? 0)) + $poneWineTotalAmt,
-        //     ];
-        // });
-
-        return view('admin.master.index', compact('users'));
+                        return view('admin.senior.index',compact('seniors'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(MasterRequest $request)
+  public function store(MasterRequest $request)
     {
         // abort_if(
         //     Gate::denies('master_create'),
@@ -116,7 +56,7 @@ class MasterController extends Controller
                 'user_name' => $user_name,
                 'password' => Hash::make($inputs['password']),
                 'agent_id' => Auth()->user()->id,
-                'type' => UserType::Master,
+                'type' => UserType::Senior,
             ]
         );
 
@@ -127,7 +67,7 @@ class MasterController extends Controller
         }
 
         $user = User::create($userPrepare);
-        $user->roles()->sync(self::MASTER_ROLE);
+        $user->roles()->sync(self::SENIOR_ROLE);
         $permissions = Permission::whereIn('group', ['agent'])->get();
         $user->permissions()->sync($permissions->pluck('id'));
 
@@ -218,10 +158,10 @@ class MasterController extends Controller
         //     Response::HTTP_FORBIDDEN,
         //     '403 Forbidden |You cannot  Access this page because you do not have permission'
         // );
+        // dd($id);
+        $senior = User::find($id);
 
-        $master = User::find($id);
-
-        return view('admin.master.edit', compact('master'));
+        return view('admin.senior.edit', compact('senior'));
     }
 
     /**
@@ -235,9 +175,9 @@ class MasterController extends Controller
         //     '403 Forbidden |You cannot  Access this page because you do not have permission'
         // );
 
-        $master = User::find($id);
+        $senior = User::find($id);
 
-        return view('admin.master.cash_in', compact('master'));
+        return view('admin.senior.cash_in', compact('senior'));
     }
 
     public function getCashOut(string $id)
@@ -260,35 +200,35 @@ class MasterController extends Controller
         // }
 
         try {
-            $agent = User::findOrFail($id);
-            $admin = Auth::user();
-            if ($request->amount > $admin->balanceFloat) {
+            $senior = User::findOrFail($id);
+            $owner = Auth::user();
+            if ($request->amount > $owner->balanceFloat) {
                 throw new \Exception('You do not have enough balance to transfer!');
             }
 
             app(WalletService::class)->transfer(
-                $admin,
-                $agent,
+                $owner,
+                $senior,
                 $request->amount,
                 TransactionName::CreditTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $senior->balanceFloat,
+                    'new_balance' => $senior->balanceFloat + $request->amount,
                 ]
             );
 
             // Create transfer log
             TransferLog::create([
-                'from_user_id' => $admin->id,
-                'to_user_id' => $agent->id,
+                'from_user_id' => $owner->id,
+                'to_user_id' => $senior->id,
                 'amount' => $request->amount,
                 'type' => 'top_up',
-                'description' => $request->note ?? 'TopUp from owner to '.$agent->user_name,
+                'description' => $request->note ?? 'TopUp from owner to '.$senior->user_name,
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat + $request->amount,
+                    'old_balance' => $senior->balanceFloat,
+                    'new_balance' => $senior->balanceFloat + $request->amount,
                 ],
             ]);
 
@@ -306,38 +246,38 @@ class MasterController extends Controller
         // }
 
         try {
-            $agent = User::findOrFail($id);
-            $admin = Auth::user();
+            $senior = User::findOrFail($id);
+            $owner = Auth::user();
             $cashOut = $request->amount;
 
-            if ($cashOut > $agent->balanceFloat) {
+            if ($cashOut > $senior->balanceFloat) {
                 return redirect()->back()->with('error', 'You do not have enough balance to transfer!');
             }
 
             // Transfer money
             app(WalletService::class)->transfer(
-                $agent,
-                $admin,
+                $senior,
+                $owner,
                 $request->amount,
                 TransactionName::DebitTransfer,
                 [
                     'note' => $request->note,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $senior->balanceFloat,
+                    'new_balance' => $senior->balanceFloat - $request->amount,
                 ]
             );
 
             // Create transfer log
             TransferLog::create([
-                'from_user_id' => $agent->id,
-                'to_user_id' => $admin->id,
+                'from_user_id' => $senior->id,
+                'to_user_id' => $owner->id,
                 'amount' => $request->amount,
                 'type' => 'withdraw',
-                'description' => $request->note ?? 'Withdraw from '.$agent->user_name.' to owner',
+                'description' => $request->note ?? 'Withdraw from '.$senior->user_name.' to owner',
                 'meta' => [
                     'transaction_type' => TransactionName::DebitTransfer->value,
-                    'old_balance' => $agent->balanceFloat,
-                    'new_balance' => $agent->balanceFloat - $request->amount,
+                    'old_balance' => $senior->balanceFloat,
+                    'new_balance' => $senior->balanceFloat - $request->amount,
                 ],
             ]);
 
@@ -467,21 +407,25 @@ class MasterController extends Controller
         );
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request)
     {
+
+        // dd($request->all());
         // abort_if(
         //     Gate::denies('master_edit') || ! $this->ifChildOfParent($request->user()->id, $id),
         //     Response::HTTP_FORBIDDEN,
         //     '403 Forbidden | You cannot access this page because you do not have permission'
         // );
 
-        $user = User::findOrFail($id);
+        $user = User::findOrFail($request->id);
 
         $request->validate([
             'user_name' => 'nullable|string|max:255',
             'name' => 'required|string|max:255',
-            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone,'.$id,
+            'phone' => 'required|numeric|digits_between:10,15|unique:users,phone,'.$request->id,
         ]);
+
+        // dd($user);
 
         $user->update([
             'user_name' => $request->user_name ?? $user->user_name,

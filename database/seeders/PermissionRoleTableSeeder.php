@@ -37,6 +37,34 @@ class PermissionRoleTableSeeder extends Seeder
             'master_withdraw',
             'view_player_list',
         ],
+
+          'Senior' => [
+            // 'owner_access',
+            // 'agent_index',
+            'senior_access',
+            // 'agent_create',
+            // 'agent_edit',
+            // 'agent_delete',
+            'transfer_log',
+            'make_transfer',
+            'game_type_access',
+            'provider_access',
+            'provider_create',
+            'provider_edit',
+            'provider_delete',
+            'provider_index',
+            // 'master_access',
+            // 'master_index',
+            'master_create',
+            'master_edit',
+            'master_delete',
+            // 'master_change_password_access',
+            'master_transfer_log',
+            'master_make_transfer',
+            // 'master_bank',
+            'master_withdraw',
+            // 'view_player_list',
+        ],
         'Master' => [
             'master_access',
             'master_index',
@@ -88,11 +116,12 @@ class PermissionRoleTableSeeder extends Seeder
 
     private const ROLE_IDS = [
         'Owner' => 1,
-        'Master' => 2,
-        'Agent' => 3,
-        'SubAgent' => 4,
-        'Player' => 5,
-        'SystemWallet' => 6,
+        'Senior' => 2,
+        'Master' => 3,
+        'Agent' => 4,
+        'SubAgent' => 5,
+        'Player' => 6,
+        'SystemWallet' => 7,
     ];
 
     public function run(): void

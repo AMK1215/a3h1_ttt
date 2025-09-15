@@ -35,8 +35,10 @@
                                 <th>Status</th>
                                 <th>Balance</th>
                                 {{-- <th>Total Winlose Amt</th> --}}
+                                @can('senior_access')
                                 <th>Action</th>
                                 <th>Transfer</th>
+                                @endcan
                             </thead>
                             <tbody>
                                 {{-- kzt --}}
@@ -66,7 +68,7 @@
                                         // $totalAmt = $poneWintAmt + $result + $betNResults; --}}
 
                                     {{-- <td class="{{ $user->win_lose >= 0 ? 'text-success text-bold' : 'text-danger text-bold'}}">{{number_format($user->win_lose)}}</td> --}}
-
+                                    @can('senior_access')
                                     <td>
                                         @if ($user->status == 1)
                                         <a onclick="event.preventDefault(); document.getElementById('banUser-{{ $user->id }}').submit();"
@@ -110,6 +112,7 @@
                                             </button>
                                         </form> --}}
                                     </td>
+
                                     <td>
                                         <a href="{{ route('admin.master.getCashIn', $user->id) }}"
                                             data-bs-toggle="tooltip"
@@ -136,10 +139,8 @@
                                             <i class="fa-solid fa-money-bill-transfer"></i>
                                             Transfer Logs
                                         </a>
-
-
-
                                     </td>
+                                    @endcan
                                 </tr>
                                 @endforeach
                                 @else
