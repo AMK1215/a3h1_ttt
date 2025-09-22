@@ -68,7 +68,7 @@ class SeniorController extends Controller
 
         $user = User::create($userPrepare);
         $user->roles()->sync(self::SENIOR_ROLE);
-        $permissions = Permission::whereIn('group', ['agent'])->get();
+        $permissions = Permission::whereIn('group', ['senior'])->get();
         $user->permissions()->sync($permissions->pluck('id'));
 
         if (isset($inputs['amount'])) {
@@ -89,7 +89,7 @@ class SeniorController extends Controller
                 'to_user_id' => $user->id,
                 'amount' => $inputs['amount'],
                 'type' => 'top_up',
-                'description' => 'Initial Top Up from Owner to new Master',
+                'description' => 'Initial Top Up from Owner to new Senior',
                 'meta' => [
                     'transaction_type' => TransactionName::CreditTransfer->value,
                     'old_balance' => $user->balanceFloat,
@@ -101,8 +101,8 @@ class SeniorController extends Controller
 
         session()->forget('user_name');
 
-        return redirect()->route('admin.master.index')
-            ->with('successMessage', 'Master created successfully')
+        return redirect()->route('admin.senior.index')
+            ->with('successMessage', 'Senior created successfully')
             ->with('password', $request->password)
             ->with('username', $user->user_name)
             ->with('amount', $request->amount);
@@ -122,14 +122,14 @@ class SeniorController extends Controller
 
         session()->put('user_name', $user_name);
 
-        return view('admin.master.create', compact('user_name', 'user_name'));
+        return view('admin.senior.create', compact('user_name', 'user_name'));
     }
 
     private function generateRandomString()
     {
         $randomNumber = mt_rand(10000000, 99999999);
 
-        return 'M'.$randomNumber;
+        return 'S'.$randomNumber;
     }
 
     /**
