@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\WinnerTextController;
 use App\Http\Controllers\Admin\WithDrawRequestController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\PoneWine\PoneWineReportController;
 
 Route::group([
     'prefix' => 'admin',
