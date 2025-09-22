@@ -81,7 +81,7 @@ class PoneWineLaunchGameController extends Controller
             Log::info('Payload', ['payload' => $payload]);
 
             // Call provider API to get launch game URL
-            $providerApiUrl = config('shan_key.api_url') . '/api/client/launch-game';
+            $providerApiUrl = config('shan_key.api_url') . '/api/client/ponewine/launch-game';
             
             Log::info('Calling provider API', [
                 'provider_url' => $providerApiUrl,

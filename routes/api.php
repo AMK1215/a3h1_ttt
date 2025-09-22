@@ -36,8 +36,10 @@ use App\Http\Controllers\Api\V1\Shan\ShankomeeGetBalanceController;
 use App\Http\Controllers\Api\V1\Shan\BalanceUpdateCallbackController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\PoneWine\GameMatchController;
 use App\Http\Controllers\Api\PoneWine\PoneWineClientBalanceUpdateController;
 use App\Http\Controllers\Api\PoneWine\PoneWineLaunchGameController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -163,7 +165,15 @@ Route::group(['prefix' => 'shan'], function () {
 
 Route::get('/pone-wine/game-match/{matchId}', [App\Http\Controllers\Api\PoneWine\GameMatchController::class, 'getGameMatch']);
 Route::post('/pone-wine/client-report', [PoneWineClientBalanceUpdateController::class, 'PoneWineClientReport']);
-Route::post('/pone-wine/launch-game', [PoneWineLaunchGameController::class, 'launchGame']);
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // route prefix shan 
+    Route::group(['prefix' => 'ponewine'], function () {
+       Route::post('/pone-wine/launch-game', [PoneWineLaunchGameController::class, 'launchGame']);
+    });
+});
+
 
 Route::middleware(['auth:sanctum'])->group(function () {
     // route prefix shan 
@@ -172,8 +182,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-// Provider route
-Route::post('/provider/launch-game', [ProviderLaunchGameController::class, 'launchGameForClient']);
+// // Provider route
+// Route::post('/provider/launch-game', [ProviderLaunchGameController::class, 'launchGameForClient']);
 
 // shan route end
 

@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\Config;
 use App\Models\PoneWineBet;
 use App\Models\PoneWineBetInfo;
 use App\Models\PoneWinePlayerBet;
-use App\Models\PoneWineTransaction;
 use Bavix\Wallet\External\Dto\Extra; 
 use Bavix\Wallet\External\Dto\Option; 
 use DateTimeImmutable; 
@@ -38,14 +37,6 @@ class PoneWineClientBalanceUpdateController extends Controller
                 'players.*.betInfos' => 'required|array',
                 'players.*.betInfos.*.betNumber' => 'required|integer',
                 'players.*.betInfos.*.betAmount' => 'required|numeric|min:0',
-                'players.*.client_agent_name' => 'nullable|string',
-                'players.*.client_agent_id' => 'nullable|string',
-                'players.*.pone_wine_player_bet' => 'nullable|array',
-                'players.*.pone_wine_bet_infos' => 'nullable|array',
-                // Provider database model information
-                'pone_wine_bet' => 'nullable|array',
-                'pone_wine_player_bets' => 'nullable|array',
-                'pone_wine_bet_infos' => 'nullable|array',
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('ClientSite: BalanceUpdateCallback validation failed', [
@@ -76,7 +67,6 @@ class PoneWineClientBalanceUpdateController extends Controller
 
             foreach ($validated['players'] as $playerData) {
                 $user = User::where('user_name', $playerData['player_id'])->first();
-                
 
                 if (!$user) {
                     Log::error('ClientSite: Player not found for balance update. Rolling back transaction.', [
@@ -138,8 +128,20 @@ class PoneWineClientBalanceUpdateController extends Controller
                 $user->refresh();
             }
 
-            // Store complete transaction data in single table
-            $this->storeTransactionData($validated, $responseData);
+            // Store game match data
+            $gameMatchData = [
+                'roomId' => $validated['roomId'],
+                'matchId' => $validated['matchId'],
+                'winNumber' => $validated['winNumber'],
+                'players' => $validated['players']
+            ];
+
+            $gameMatch = PoneWineBet::storeGameMatchData($gameMatchData);
+            Log::info('ClientSite: Game match data stored', [
+                'match_id' => $gameMatch->match_id,
+                'room_id' => $gameMatch->room_id,
+                'win_number' => $gameMatch->win_number
+            ]);
             
 
             DB::commit();
@@ -161,97 +163,6 @@ class PoneWineClientBalanceUpdateController extends Controller
             return response()->json([
                 'status' => 'error', 'code' => 'INTERNAL_SERVER_ERROR', 'message' => 'Internal server error: ' . $e->getMessage(),
             ], 500);
-        }
-    }
-
-    /**
-     * Store transaction data in single comprehensive table
-     */
-    private function storeTransactionData(array $validated, array $responseData): void
-    {
-        try {
-            $gameData = [
-                'roomId' => $validated['roomId'],
-                'matchId' => $validated['matchId'],
-                'winNumber' => $validated['winNumber'],
-            ];
-
-            // Store each player's transaction
-            foreach ($validated['players'] as $index => $playerData) {
-                $user = User::where('user_name', $playerData['player_id'])->first();
-                $player_agent_id = $user->agent_id;
-                $player_agent_name = $user->agent->user_name;
-                
-                if (!$user) {
-                    Log::warning('ClientSite: User not found for transaction storage', [
-                        'player_id' => $playerData['player_id']
-                    ]);
-                    continue;
-                }
-
-                // Get balance information from our response data
-                $balanceInfo = $responseData[$index] ?? null;
-                $balanceBefore = $user->wallet->balanceFloat - ($playerData['winLoseAmount'] ?? 0);
-                $balanceAfter = $balanceInfo['balance'] ?? $user->wallet->balanceFloat;
-
-                // Store each bet info as separate transaction record
-                foreach ($playerData['betInfos'] as $betInfo) {
-                    try {
-                        // Check if this specific transaction already exists
-                        $existingTransaction = PoneWineTransaction::where('match_id', $validated['matchId'])
-                            ->where('user_id', $user->id)
-                            ->where('bet_number', $betInfo['betNumber'])
-                            ->first();
-
-                        if ($existingTransaction) {
-                            Log::info('ClientSite: Transaction already exists, skipping', [
-                                'match_id' => $validated['matchId'],
-                                'user_id' => $user->id,
-                                'bet_number' => $betInfo['betNumber']
-                            ]);
-                            continue;
-                        }
-
-                        PoneWineTransaction::storeFromProviderPayload(
-                            $gameData,
-                            $playerData,
-                            $betInfo,
-                            $user,
-                            $balanceBefore,
-                            $balanceAfter,
-                            $player_agent_id,
-                            $player_agent_name
-                        );
-
-                        Log::info('ClientSite: Transaction stored', [
-                            'match_id' => $validated['matchId'],
-                            'user_name' => $user->user_name,
-                            'bet_number' => $betInfo['betNumber'],
-                            'bet_amount' => $betInfo['betAmount'],
-                        ]);
-
-                    } catch (\Exception $e) {
-                        Log::error('ClientSite: Failed to store individual transaction', [
-                            'error' => $e->getMessage(),
-                            'match_id' => $validated['matchId'],
-                            'user_name' => $user->user_name,
-                            'bet_number' => $betInfo['betNumber'] ?? 'unknown',
-                        ]);
-                    }
-                }
-            }
-
-            Log::info('ClientSite: Transaction data storage completed', [
-                'match_id' => $validated['matchId'],
-                'players_count' => count($validated['players']),
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('ClientSite: Failed to store transaction data', [
-                'error' => $e->getMessage(),
-                'match_id' => $validated['matchId'],
-                'trace' => $e->getTraceAsString(),
-            ]);
         }
     }
 }
