@@ -647,6 +647,29 @@
                                         </p>
                                     </a>
                                 </li> -->
+
+                                @can('agent_access')
+                        <li class="nav-item">
+                            <a href="{{ route('admin.ponewine.report.index') }}"
+                                class="nav-link {{ Route::current()->getName() == 'admin.ponewine.report.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-dice"></i>
+                                <p>
+                                    PoneWine Report
+                                </p>
+                            </a>
+                        </li>
+                        @endcan
+                        @can('player_view')
+                        <li class="nav-item">
+                            <a href="{{ route('admin.ponewine.report.index') }}"
+                                class="nav-link {{ Route::current()->getName() == 'admin.ponewine.report.index' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-dice"></i>
+                                <p>
+                                    PoneWine Report
+                                </p>
+                            </a>
+                        </li>
+                        @endcan
                                 @can('owner_access')
                                 <li
                                 class="nav-item">
