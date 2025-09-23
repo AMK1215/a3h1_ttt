@@ -39,6 +39,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\PoneWine\GameMatchController;
 use App\Http\Controllers\Api\PoneWine\PoneWineClientBalanceUpdateController;
 use App\Http\Controllers\Api\PoneWine\PoneWineLaunchGameController;
+use App\Http\Controllers\Api\PoneWine\PoneWinePlayerReportController;
 
 
 /*
@@ -171,6 +172,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // route prefix shan 
     Route::group(['prefix' => 'ponewine'], function () {
        Route::post('/pone-wine/launch-game', [PoneWineLaunchGameController::class, 'launchGame']);
+       
+       // PoneWine Player Report routes
+       Route::get('/player/report', [PoneWinePlayerReportController::class, 'getPlayerReport']);
+       Route::get('/player/summary', [PoneWinePlayerReportController::class, 'getPlayerSummary']);
     });
 });
 
