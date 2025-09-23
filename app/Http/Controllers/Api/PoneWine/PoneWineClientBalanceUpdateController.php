@@ -89,7 +89,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                 $currentBalance = $user->wallet->balanceFloat; // Get current balance
                 $winLoseAmount = $playerData['winLoseAmount']; // Amount to add/subtract from provider
                 $providerExpectedBalance = $playerData['balance']; // Provider's expected final balance
-                $game_name = $playerData['game_name'];
+                $game_name = $playerData['game_name'] ?? 'PoneWine';
                 Log::info('ClientSite: Processing player balance update', [
                     'player_id' => $user->user_name,
                     'current_balance' => $currentBalance,
@@ -183,7 +183,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                 $user = User::where('user_name', $playerData['player_id'])->first();
                 $player_agent_id = $user->agent_id;
                 $player_agent_name = $user->agent->user_name;
-                $game_name = 'PoneWine';
+                $game_name = $playerData['game_name'] ?? 'PoneWine';
                 if (!$user) {
                     Log::warning('ClientSite: User not found for transaction storage', [
                         'player_id' => $playerData['player_id']
