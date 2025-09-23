@@ -42,6 +42,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                 'players.*.client_agent_id' => 'nullable|string',
                 'players.*.pone_wine_player_bet' => 'nullable|array',
                 'players.*.pone_wine_bet_infos' => 'nullable|array',
+                'players.*.game_name' => 'nullable|string',
                 // Provider database model information
                 'pone_wine_bet' => 'nullable|array',
                 'pone_wine_player_bets' => 'nullable|array',
@@ -88,7 +89,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                 $currentBalance = $user->wallet->balanceFloat; // Get current balance
                 $winLoseAmount = $playerData['winLoseAmount']; // Amount to add/subtract from provider
                 $providerExpectedBalance = $playerData['balance']; // Provider's expected final balance
-
+                $game_name = $playerData['game_name'];
                 Log::info('ClientSite: Processing player balance update', [
                     'player_id' => $user->user_name,
                     'current_balance' => $currentBalance,
@@ -104,6 +105,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                     'provider_expected_balance' => $providerExpectedBalance,
                     'client_old_balance' => $currentBalance,
                     'description' => 'Pone Wine game settlement from provider',
+                    'game_name' => $game_name,
                 ];
 
                 if ($winLoseAmount > 0) {
@@ -181,7 +183,7 @@ class PoneWineClientBalanceUpdateController extends Controller
                 $user = User::where('user_name', $playerData['player_id'])->first();
                 $player_agent_id = $user->agent_id;
                 $player_agent_name = $user->agent->user_name;
-                
+                $game_name = 'PoneWine';
                 if (!$user) {
                     Log::warning('ClientSite: User not found for transaction storage', [
                         'player_id' => $playerData['player_id']
@@ -220,7 +222,8 @@ class PoneWineClientBalanceUpdateController extends Controller
                             $balanceBefore,
                             $balanceAfter,
                             $player_agent_id,
-                            $player_agent_name
+                            $player_agent_name,
+                            $game_name
                         );
 
                         Log::info('ClientSite: Transaction stored', [

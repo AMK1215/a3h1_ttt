@@ -34,6 +34,7 @@ class PoneWineTransaction extends Model
         'notes',
         'player_agent_id',
         'player_agent_name',
+        'game_name'
     ];
 
     protected $casts = [
@@ -57,7 +58,7 @@ class PoneWineTransaction extends Model
     /**
      * Store a complete PoneWine transaction from provider payload
      */
-        public static function storeFromProviderPayload(array $gameData, array $playerData, array $betInfo, User $user, float $balanceBefore, float $balanceAfter, $player_agent_id, $player_agent_name): self
+        public static function storeFromProviderPayload(array $gameData, array $playerData, array $betInfo, User $user, float $balanceBefore, float $balanceAfter, $player_agent_id, $player_agent_name, $game_name): self
     {
         return self::create([
             'room_id' => $gameData['roomId'],
@@ -86,6 +87,7 @@ class PoneWineTransaction extends Model
             ],
             'player_agent_id' => $player_agent_id,
             'player_agent_name' => $player_agent_name,
+            'game_name' => $game_name,
         ]);
     }
 
