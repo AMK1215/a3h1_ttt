@@ -29,7 +29,24 @@ class WalletService
 
     public function deposit(User $user, float $amount, TransactionName|DigitTransactionName $transaction_name, array $meta = [])
     {
-        $user->depositFloat($amount, self::buildDepositMeta($user, $user, $transaction_name, $meta));
+        try {
+            \Log::info("Attempting to deposit {$amount} to user {$user->id} for transaction: {$transaction_name->value}");
+            \Log::info("User balance before deposit: {$user->balanceFloat}");
+
+            $result = $user->depositFloat($amount, self::buildDepositMeta($user, $user, $transaction_name, $meta));
+
+            \Log::info("Deposit successful. User balance after deposit: {$user->balanceFloat}");
+
+            return $result;
+        } catch (\Exception $e) {
+            \Log::error("Deposit failed for user {$user->id}: ".$e->getMessage(), [
+                'amount' => $amount,
+                'transaction_name' => $transaction_name->value,
+                'meta' => $meta,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            throw $e;
+        }
     }
 
     public function withdraw(User $user, float $amount, TransactionName|DigitTransactionName $transaction_name, array $meta = [])
