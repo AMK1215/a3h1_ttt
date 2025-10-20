@@ -27,7 +27,7 @@ class BuffaloGameController extends Controller
      */
     public function getUserBalance(Request $request)
     {
-        Log::info('GCC Buffalo getUserBalance - Request received', [
+        Log::info('TTT Buffalo getUserBalance - Request received', [
             'request' => $request->all(),
             'ip' => $request->ip()
         ]);
@@ -41,13 +41,13 @@ class BuffaloGameController extends Controller
         $token = $request->token;
 
         // Verify token
-        Log::info('GCC Buffalo - Token verification attempt', [
+        Log::info('TTT Buffalo - Token verification attempt', [
             'uid' => $uid,
             'token' => $token
         ]);
         
         if (!BuffaloGameService::verifyToken($uid, $token)) {
-            Log::warning('GCC Buffalo - Token verification failed', [
+            Log::warning('TTT Buffalo - Token verification failed', [
                 'uid' => $uid,
                 'token' => $token
             ]);
@@ -58,7 +58,7 @@ class BuffaloGameController extends Controller
             ]);
         }
         
-        Log::info('GCC Buffalo - Token verification successful', [
+        Log::info('TTT Buffalo - Token verification successful', [
             'uid' => $uid
         ]);
 
@@ -66,7 +66,7 @@ class BuffaloGameController extends Controller
         $userName = BuffaloGameService::extractUserNameFromUid($uid);
 
         if (!$userName) {
-            Log::warning('GCC Buffalo - Could not extract username', [
+            Log::warning('TTT Buffalo - Could not extract username', [
                 'uid' => $uid
             ]);
             
@@ -80,7 +80,7 @@ class BuffaloGameController extends Controller
         $user = User::where('user_name', $userName)->first();
         
         if (!$user) {
-            Log::warning('GCC Buffalo - User not found', [
+            Log::warning('TTT Buffalo - User not found', [
                 'userName' => $userName,
                 'uid' => $uid
             ]);
@@ -94,7 +94,7 @@ class BuffaloGameController extends Controller
         // Get balance (assuming you use bavix/laravel-wallet)
         $balance = $user->balanceFloat;
 
-        Log::info('GCC Buffalo - Balance retrieved successfully', [
+        Log::info('TTT Buffalo - Balance retrieved successfully', [
             'user' => $userName,
             'balance' => $balance
         ]);
@@ -113,7 +113,7 @@ class BuffaloGameController extends Controller
      */
     public function changeBalance(Request $request)
     {
-        // Log::info('GCC Buffalo changeBalance - Request received', [
+        // Log::info('TTT Buffalo changeBalance - Request received', [
         //     'request' => $request->all(),
         //     'ip' => $request->ip()
         // ]);
@@ -131,13 +131,13 @@ class BuffaloGameController extends Controller
         $token = $request->token;
 
         // Verify token
-        Log::info('GCC Buffalo - Token verification attempt', [
+        Log::info('TTT Buffalo - Token verification attempt', [
             'uid' => $uid,
             'token' => $token
         ]);
         
         if (!BuffaloGameService::verifyToken($uid, $token)) {
-            Log::warning('GCC Buffalo - Token verification failed', [
+            Log::warning('TTT Buffalo - Token verification failed', [
                 'uid' => $uid,
                 'token' => $token
             ]);
@@ -148,7 +148,7 @@ class BuffaloGameController extends Controller
             ]);
         }
         
-        Log::info('GCC Buffalo - Token verification successful', [
+        Log::info('TTT Buffalo - Token verification successful', [
             'uid' => $uid
         ]);
 
@@ -156,7 +156,7 @@ class BuffaloGameController extends Controller
         $userName = BuffaloGameService::extractUserNameFromUid($uid);
 
         if (!$userName) {
-            Log::warning('GCC Buffalo - Could not extract username', [
+            Log::warning('TTT Buffalo - Could not extract username', [
                 'uid' => $uid
             ]);
             

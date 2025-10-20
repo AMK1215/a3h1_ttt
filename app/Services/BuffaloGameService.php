@@ -10,9 +10,9 @@ class BuffaloGameService
     /**
      * Site configuration for Golden City Casino
      */
-    private const SITE_NAME = 'goldencitycasino123.site';
-    private const SITE_PREFIX = 'gcc';
-    private const SITE_URL = 'https://ag.goldencitycasino123.site';
+    private const SITE_NAME = 'ag.tttgamingmm.pro';
+    private const SITE_PREFIX = 'ttt';
+    private const SITE_URL = 'https://ag.tttgamingmm.pro';
 
     /**
      * Generate UID (32 characters) for Buffalo API
@@ -68,7 +68,7 @@ class BuffaloGameService
             $userName = self::extractUserNameFromUid($uid);
             
             if (!$userName) {
-                Log::warning('GCC Buffalo - Could not extract username from UID', [
+                Log::warning('TTT Buffalo - Could not extract username from UID', [
                     'uid' => $uid
                 ]);
                 return false;
@@ -78,7 +78,7 @@ class BuffaloGameService
             $user = User::where('user_name', $userName)->first();
             
             if (!$user) {
-                Log::warning('GCC Buffalo - User not found for token verification', [
+                Log::warning('TTT Buffalo - User not found for token verification', [
                     'userName' => $userName
                 ]);
                 return false;
@@ -90,11 +90,11 @@ class BuffaloGameService
             $isValid = hash_equals($expectedToken, $token);
 
             if ($isValid) {
-                Log::info('GCC Buffalo - Token verified successfully', [
+                Log::info('TTT Buffalo - Token verified successfully', [
                     'user' => $userName
                 ]);
             } else {
-                Log::warning('GCC Buffalo - Token verification failed', [
+                Log::warning('TTT Buffalo - Token verification failed', [
                     'user' => $userName,
                     'expected' => substr($expectedToken, 0, 10) . '...',
                     'received' => substr($token, 0, 10) . '...'
@@ -104,7 +104,7 @@ class BuffaloGameService
             return $isValid;
 
         } catch (\Exception $e) {
-            Log::error('GCC Buffalo - Token verification error', [
+            Log::error('TTT Buffalo - Token verification error', [
                 'error' => $e->getMessage(),
                 'uid' => $uid
             ]);
@@ -146,7 +146,7 @@ class BuffaloGameService
                 }
             }
         } catch (\Exception $e) {
-            Log::warning('GCC Buffalo - Failed to decode UID', [
+            Log::warning('TTT Buffalo - Failed to decode UID', [
                 'uid' => $uid,
                 'error' => $e->getMessage()
             ]);
@@ -162,7 +162,7 @@ class BuffaloGameService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('GCC Buffalo - Error in fallback UID search', [
+            Log::error('TTT Buffalo - Error in fallback UID search', [
                 'uid' => $uid,
                 'error' => $e->getMessage()
             ]);
