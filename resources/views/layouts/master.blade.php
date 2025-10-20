@@ -658,6 +658,15 @@
                                 </p>
                             </a>
                         </li>
+                         <li class="nav-item">
+                            <a href="{{ route('admin.buffalo-report.index') }}"
+                                class="nav-link {{ Route::current()->getName() == 'admin.buffalo-report.index' || Route::current()->getName() == 'admin.buffalo-report.show' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-bar"></i>
+                                <p>
+                                    Buffalo Game Report
+                                </p>
+                            </a>
+                        </li>
                         @endcan
                         @can('player_view')
                         <li class="nav-item">
@@ -666,6 +675,15 @@
                                 <i class="nav-icon fas fa-dice"></i>
                                 <p>
                                     PoneWine Report
+                                </p>
+                            </a>
+                        </li>
+                         <li class="nav-item">
+                            <a href="{{ route('admin.buffalo-report.index') }}"
+                                class="nav-link {{ Route::current()->getName() == 'admin.buffalo-report.index' || Route::current()->getName() == 'admin.buffalo-report.show' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-bar"></i>
+                                <p>
+                                    Buffalo Game Report
                                 </p>
                             </a>
                         </li>
@@ -690,6 +708,15 @@
                                                 <p>Shan Player Report</p>
                                             </a>
                                         </li>
+                                         <li class="nav-item">
+                            <a href="{{ route('admin.buffalo-report.index') }}"
+                                class="nav-link {{ Route::current()->getName() == 'admin.buffalo-report.index' || Route::current()->getName() == 'admin.buffalo-report.show' ? 'active' : '' }}">
+                                <i class="nav-icon fas fa-chart-bar"></i>
+                                <p>
+                                    Buffalo Game Report
+                                </p>
+                            </a>
+                        </li>
                                         <li class="nav-item">
                                                 <a href="{{ route('admin.shan.report.transactions') }}"
                                                 class="nav-link {{ Route::current()->getName() == 'admin.shan.report.transactions' ? 'active' : '' }}">
