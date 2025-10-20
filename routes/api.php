@@ -40,6 +40,8 @@ use App\Http\Controllers\Api\PoneWine\GameMatchController;
 use App\Http\Controllers\Api\PoneWine\PoneWineClientBalanceUpdateController;
 use App\Http\Controllers\Api\PoneWine\PoneWineLaunchGameController;
 use App\Http\Controllers\Api\PoneWine\PoneWinePlayerReportController;
+use App\Http\Controllers\Api\V1\Game\BuffaloGameController;
+
 
 
 /*
@@ -187,9 +189,19 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-// // Provider route
-// Route::post('/provider/launch-game', [ProviderLaunchGameController::class, 'launchGameForClient']);
+// buffalo route start
+Route::prefix('buffalo')->group(function () {
+    // Buffalo Game API endpoints (called by Buffalo provider)
+    Route::post('/get-user-balance', [BuffaloGameController::class, 'getUserBalance']);
+    Route::post('/change-balance', [BuffaloGameController::class, 'changeBalance']);
 
-// shan route end
+    // Protected endpoints for frontend integration
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/game-auth', [BuffaloGameController::class, 'generateGameAuth']);
+        Route::post('/game-url', [BuffaloGameController::class, 'generateGameUrl']);
+        Route::post('/launch-game', [BuffaloGameController::class, 'launchGame']);
+    });
+});
+
 
 

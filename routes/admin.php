@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\WithDrawRequestController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\PoneWine\PoneWineReportController;
+use App\Http\Controllers\Admin\BuffaloGame\BuffaloReportController;
 
 Route::group([
     'prefix' => 'admin',
@@ -306,5 +307,11 @@ Route::group([
         Route::get('/report/agent/{agentId}', [PoneWineReportController::class, 'agentDetail'])->name('ponewine.report.agent.detail');
         Route::get('/report/player/{playerId}', [PoneWineReportController::class, 'playerDetail'])->name('ponewine.report.player.detail');
         Route::get('/report/export', [PoneWineReportController::class, 'exportCsv'])->name('ponewine.report.export');
+    });
+
+    // Buffalo Game reports
+    Route::group(['prefix' => 'buffalo-game'], function () {
+        Route::get('/report', [BuffaloReportController::class, 'index'])->name('buffalo-report.index');
+        Route::get('/report/{id}', [BuffaloReportController::class, 'show'])->name('buffalo-report.show');
     });
 });
